@@ -3,27 +3,12 @@
     <div class="absolute inset-0 z-10" v-if="flashActive" :class="['bg-white bg-opacity-80 animate-flash']"></div>
 
     <!-- Show captured image if available -->
-    <img
-      v-if="capturedImage"
-      :src="capturedImage"
-      class="object-cover w-full h-full"
-      alt="captured"
-    />
+    <img v-if="capturedImage" :src="capturedImage" class="object-cover w-full h-full" alt="captured" />
     <!-- Else show live video -->
-    <video
-      v-else
-      ref="videoRef"
-      autoplay
-      playsinline
-      muted
-      class="object-cover w-full h-full"
-    ></video>
+    <video v-else ref="videoRef" autoplay playsinline muted class="object-cover w-full h-full"></video>
 
-    <img
-      :src="frameSrc"
-      class="absolute top-0 left-0 w-full h-full object-cover pointer-events-none"
-      ref="frameImageRef"
-    />
+    <img v-if="mode !== 'live'" :src="frameSrc"
+      class="absolute top-0 left-0 w-full h-full object-none pointer-events-none" ref="frameImageRef" />
   </div>
 </template>
 
@@ -60,10 +45,19 @@ defineExpose({
 
 <style scoped>
 @keyframes flash {
-  0% { opacity: 0; }
-  50% { opacity: 1; }
-  100% { opacity: 0; }
+  0% {
+    opacity: 0;
+  }
+
+  50% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+  }
 }
+
 .animate-flash {
   animation: flash 0.3s ease-in-out;
 }

@@ -1,11 +1,15 @@
 <template>
   <div class="min-h-screen bg-gray-900 text-white flex flex-col items-center justify-center gap-6 p-4">
-    <!-- Grid -->
-    <div v-if="!finalImage" class="grid grid-cols-2 gap-4 max-w-screen-md w-full">
-      <PhotoFrame ref="frame1" frameSrc="/src/assets/1.png" />
-      <PhotoFrame ref="frame2" frameSrc="/src/assets/2.png" />
-      <PhotoFrame ref="frame3" frameSrc="/src/assets/3.png" />
-      <PhotoFrame ref="frame4" frameSrc="/src/assets/4.png" />
+    <!-- Semua frame hanya tampil jika belum final preview -->
+    <div v-if="!finalImage">
+      <!-- Frame Live -->
+      <PhotoFrame v-if="currentCaptureIndex < 4" :key="currentCaptureIndex" :ref="`frame${currentCaptureIndex + 1}`"
+        :frameSrc="framesSrc[currentCaptureIndex]" mode="live" />
+      <!-- Captured -->
+      <div v-if="currentCaptureIndex > 0" class="grid grid-cols-2 gap-4 mt-6">
+        <PhotoFrame v-for="(src, i) in framesSrc" v-if="i < currentCaptureIndex" :key="i" :ref="`frame${i + 1}`"
+          :frameSrc="src" mode="captured" />
+      </div>
     </div>
 
     <!-- Tombol -->
@@ -36,35 +40,43 @@
 import { ref } from 'vue'
 import PhotoFrame from './components/PhotoFrame.vue'
 
+const framesSrc = [
+  '/src/assets/1.png',
+  '/src/assets/2.png',
+  '/src/assets/3.png',
+  '/src/assets/4.png',
+]
+
 const frame1 = ref(null)
 const frame2 = ref(null)
 const frame3 = ref(null)
 const frame4 = ref(null)
 
+const frames = [frame1, frame2, frame3, frame4]
+
 const currentCaptureIndex = ref(0)
-const countdown = ref(0)
+const countdown = ref(5)
 const isCapturing = ref(false)
 const finalImage = ref(null)
 
 const capturedCanvases = [null, null, null, null]
 
-async function startCapture() {
-  if (currentCaptureIndex.value >= 4 || isCapturing.value) return
+function startCapture() {
+  if (isCapturing.value || currentCaptureIndex.value >= 4) return
 
   isCapturing.value = true
   countdown.value = 5
 
-  const interval = setInterval(() => {
+  const countdownInterval = setInterval(() => {
     countdown.value--
     if (countdown.value <= 0) {
-      clearInterval(interval)
-      captureSingle(currentCaptureIndex.value)
+      clearInterval(countdownInterval)
+      captureSingle(currentCaptureIndex.value) // ⬅️ Otomatis ambil gambar
     }
   }, 1000)
 }
 
 async function captureSingle(index) {
-  const frames = [frame1, frame2, frame3, frame4]
   const frameRef = frames[index].value
   const video = frameRef.getVideo()
   const overlay = frameRef.getFrame()
@@ -92,7 +104,7 @@ async function captureSingle(index) {
     const img = new Image()
     img.src = overlay.src
     img.onload = () => {
-      ctx.drawImage(img, 0, 0, size, size) // gambar frame PNG transparan
+      ctx.drawImage(img, 0, 0, size, size) // ✅ ini akan tertanam di hasil capture
       resolve()
     }
   })
@@ -123,6 +135,8 @@ function composeFinalImage() {
     const row = Math.floor(i / 2)
     const x = col * size
     const y = row * size
+
+    // ⛔️ Jangan tambah frame PNG lagi di sini
     ctx.drawImage(capturedCanvases[i], x, y, size, size)
   }
 
