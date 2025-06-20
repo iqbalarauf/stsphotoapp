@@ -2,10 +2,10 @@
   <div class="min-h-screen bg-gray-900 text-white flex flex-col items-center justify-center gap-6 p-4">
     <!-- Grid -->
     <div v-if="!finalImage" class="grid grid-cols-2 gap-4 max-w-screen-md w-full">
-      <PhotoFrame ref="frame1" frameSrc="/src/assets/frame.png" />
-      <PhotoFrame ref="frame2" frameSrc="/src/assets/frame.png" />
-      <PhotoFrame ref="frame3" frameSrc="/src/assets/frame.png" />
-      <PhotoFrame ref="frame4" frameSrc="/src/assets/frame.png" />
+      <PhotoFrame ref="frame1" frameSrc="/src/assets/1.png" />
+      <PhotoFrame ref="frame2" frameSrc="/src/assets/2.png" />
+      <PhotoFrame ref="frame3" frameSrc="/src/assets/3.png" />
+      <PhotoFrame ref="frame4" frameSrc="/src/assets/4.png" />
     </div>
 
     <!-- Tombol -->
