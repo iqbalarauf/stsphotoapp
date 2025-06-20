@@ -40,12 +40,12 @@
 import { ref } from 'vue'
 import PhotoFrame from './components/PhotoFrame.vue'
 
-const framesSrc = [
-  '/src/assets/1.png',
-  '/src/assets/2.png',
-  '/src/assets/3.png',
-  '/src/assets/4.png',
-]
+import framea from './assets/1.png'
+import frameb from './assets/2.png'
+import framec from './assets/3.png'
+import framed from './assets/4.png'
+
+const framesSrc = [framea, frameb, framec, framed]
 
 const frame1 = ref(null)
 const frame2 = ref(null)
@@ -159,4 +159,5 @@ function resetCapture() {
   // Reset image in frames
   [frame1, frame2, frame3, frame4].forEach(f => f.value?.setCapturedImage(null))
 }
+
 </script>
