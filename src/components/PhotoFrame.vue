@@ -7,7 +7,7 @@
     <!-- Else show live video -->
     <video v-else ref="videoRef" autoplay playsinline muted class="object-cover w-full h-full"></video>
 
-    <img v-if="mode !== 'live'" :src="frameSrc"
+    <img :src="frameSrc"
       class="absolute top-0 left-0 w-full h-full object-none pointer-events-none" ref="frameImageRef" />
   </div>
 </template>
