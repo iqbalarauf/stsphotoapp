@@ -22,8 +22,21 @@ const capturedImage = ref(null)
 const flashActive = ref(false)
 
 onMounted(async () => {
-  const stream = await navigator.mediaDevices.getUserMedia({ video: true })
-  if (videoRef.value) videoRef.value.srcObject = stream
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ video: true })
+    if (videoRef.value) {
+      videoRef.value.srcObject = stream
+      // Optional: Add a check to ensure video is loaded
+      videoRef.value.onloadedmetadata = () => {
+        console.log('Video stream loaded successfully.');
+      };
+    }
+  } catch (err) {
+    console.error('Error accessing camera:', err);
+    // Tampilkan pesan ke user bahwa kamera tidak bisa diakses
+    // Misalnya: capturedImage.value = '/path/to/error_image.png'
+    // Atau tampilkan div error di template
+  }
 })
 
 function setCapturedImage(dataURL) {
