@@ -7,7 +7,7 @@
     <!-- Else show live video -->
     <video v-else ref="videoRef" autoplay playsinline muted class="object-cover w-full h-full"></video>
 
-    <img :src="frameSrc"
+    <img :src="frameSrc" crossorigin="anonymous"
       class="absolute top-0 left-0 w-full h-full object-none pointer-events-none" ref="frameImageRef" />
   </div>
 </template>
@@ -26,16 +26,16 @@ onMounted(async () => {
     const stream = await navigator.mediaDevices.getUserMedia({ video: true })
     if (videoRef.value) {
       videoRef.value.srcObject = stream
-      // Optional: Add a check to ensure video is loaded
       videoRef.value.onloadedmetadata = () => {
-        console.log('Video stream loaded successfully.');
-      };
+        console.log('Video metadata loaded.')
+      }
+      videoRef.value.onloadeddata = () => {
+        console.log('Video data loaded.')
+        videoReady.value = true
+      }
     }
   } catch (err) {
-    console.error('Error accessing camera:', err);
-    // Tampilkan pesan ke user bahwa kamera tidak bisa diakses
-    // Misalnya: capturedImage.value = '/path/to/error_image.png'
-    // Atau tampilkan div error di template
+    console.error('Error accessing camera:', err)
   }
 })
 

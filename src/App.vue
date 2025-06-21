@@ -47,6 +47,7 @@ import framed from './assets/4.png'
 
 // Frame refs
 const framesSrc = [framea, frameb, framec, framed]
+
 const frame1 = ref(null)
 const frame2 = ref(null)
 const frame3 = ref(null)
@@ -59,6 +60,24 @@ const countdown = ref(0)
 const isCapturing = ref(false)
 const finalImage = ref(null)
 const capturedCanvases = [null, null, null, null]
+
+async function waitForFrameMount(index, maxWait = 3000) {
+  const start = Date.now()
+  while (true) {
+    const ref = frames[index]?.value
+    const video = ref?.getVideo?.()
+    if (video?.videoWidth > 0 && video?.videoHeight > 0) {
+      console.log(`✅ Frame siap: ${index}`)
+      return
+    }
+
+    await new Promise(r => setTimeout(r, 50))
+    if (Date.now() - start > maxWait) {
+      console.warn('❗ Timeout: frame belum muncul:', index)
+      return
+    }
+  }
+}
 
 // Otomatis ambil semua frame
 async function startCapture() {
@@ -85,7 +104,7 @@ async function startCapture() {
     await nextTick()
     await waitForFrameMount(i) // tunggu sampai frame[i] benar-benar ada
 
-    console.log(`📸 Mencoba ambil frame ke-${i}`)
+    console.log(`📸 Mencoba ambil frame ke-${i+1}`)
     await captureSingle(i)
   }
 
@@ -93,16 +112,7 @@ async function startCapture() {
   composeFinalImage()
 }
 
-async function waitForFrameMount(index, maxWait = 2000) {
-  const start = Date.now()
-  while (!frames[index]?.value) {
-    await new Promise(r => setTimeout(r, 50))
-    if (Date.now() - start > maxWait) {
-      console.warn('❗ Timeout: frame belum muncul:', index)
-      break
-    }
-  }
-}
+
 
 // Tangkap satu frame
 async function captureSingle(index) {
@@ -128,6 +138,11 @@ async function captureSingle(index) {
   const sx = (videoWidth - side) / 2
   const sy = (videoHeight - side) / 2
 
+  if (!video || video.videoWidth === 0 || video.videoHeight === 0) {
+  console.warn('❗ Video belum siap ditangkap:', video);
+  return;
+}
+
   ctx.drawImage(video, sx, sy, side, side, 0, 0, size, size)
 
   // Tambah overlay dari public/
@@ -146,7 +161,9 @@ async function captureSingle(index) {
   capturedCanvases[index] = canvas
   frameRef.setCapturedImage(dataUrl)
 
-  console.log(`✅ Frame ${index} selesai`)
+  console.log('🔍 Cek frame:', index, frames[index]?.value)
+console.log('🔍 Video element:', frames[index]?.value?.getVideo())
+  console.log(`✅ Frame ${index+1} selesai`)
 }
 
 // Gabung semua ke PNG akhir
