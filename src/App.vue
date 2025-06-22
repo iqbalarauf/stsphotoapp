@@ -1,9 +1,14 @@
 <template>
-  <div class="bg-contain bg-center bg-fixed" :style="{ backgroundImage: 'url(' + wallpaperUrl + ')' }">
-    <div class="max-w-screen flex flex-col items-center justify-center p-4">
-      <h1 class="bg-black/75 rounded-lg p-4 text-3xl sm:text-4xl font-bold text-white mb-8 text-center">T.E.L.E. Party Booth!</h1>
+  <div class="min-h-screen relative overflow-hidden">
+    <div
+      class="absolute inset-0 z-0 bg-cover bg-center bg-fixed"
+      :style="{ backgroundImage: 'url(' + wallpaperUrl + ')', aspectRatio: '16 / 9', minWidth: '100vw', minHeight: '100vh' }"
+    ></div>
 
-      <div class="relative w-full max-w-sm sm:max-w-md lg:max-w-lg xl:max-w-xl rounded-lg shadow-xl overflow-hidden mb-8">
+    <div class="flex flex-col items-center justify-start pt-8 pb-20 px-4 relative z-10 min-h-screen">
+      <img :src="logoUrl" alt="Vue Photobooth Logo" class="h-16 sm:h-20 max-w-full object-contain" />
+
+      <div class="relative w-full max-w-sm sm:max-w-md lg:max-w-lg xl:max-w-xl bg-gray-800 rounded-lg shadow-xl overflow-hidden mb-8">
         <video v-if="photos.length < maxPhotos || shootingInProgress" ref="videoElement" class="w-full h-auto object-cover border-4 border-transparent video-border-animation" autoplay></video>
         <canvas ref="canvasElement" class="hidden"></canvas>
         <canvas ref="gridCanvasElement" class="hidden"></canvas>
@@ -25,7 +30,7 @@
           :disabled="!cameraActive || shootingInProgress"
           class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out w-full"
         >
-          Ambil 4 Foto Otomatis
+          Ambil Foto
         </button>
       </div>
 
@@ -38,26 +43,39 @@
             :disabled="!gridPhotoUrl"
             class="flex-1 bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out"
           >
-            Unduh Foto Grid
+            Unduh Foto
           </button>
           <button
             @click="resetPhotos"
             class="flex-1 bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out"
           >
-            Reset Foto
+            Retake
           </button>
         </div>
       </div>
-    </div>
+      </div>
+
+    <footer class="fixed bottom-0 left-0 right-0 py-4 text-center text-white z-20">
+      <img :src="furllogo" alt="Footer Logo" class="h-16 mx-auto mb-1 object-contain" />
+      <p class="text-xs">&copy; {{ currentYear }}, Preview <a href="https://labtek.iqbalarauf.my.id"
+				target="__blank">Laboratorium Teknologi</a> for <a href="https://corsyava.com"
+				target="__blank">Onielity</a></p>
+    </footer>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted, onBeforeUnmount, watch } from 'vue';
 
-// Import wallpaper
 import wallpaper from './assets/wallpaper.jpg';
 const wallpaperUrl = ref(wallpaper);
+
+import logo from './assets/logo.png';
+const logoUrl = ref(logo);
+import flogo from './assets/footer-logo.png';
+const furllogo = ref(flogo);
+
+const currentYear = new Date().getFullYear()
 
 const frameImports = import.meta.glob('./assets/frame*.png', { eager: true, as: 'url' });
 const frameUrls = Object.values(frameImports);
@@ -270,9 +288,5 @@ onBeforeUnmount(() => {
 
 .video-border-animation {
   animation: border-glow 5s infinite linear;
-}
-
-.object-cover {
-  object-fit: cover;
 }
 </style>
