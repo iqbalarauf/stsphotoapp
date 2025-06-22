@@ -1,50 +1,52 @@
 <template>
-  <div class="min-h-screen bg-gray-900 flex flex-col items-center justify-center p-4">
-    <h1 class="text-4xl font-bold text-white mb-8">Preview: TELE-Party Photobooth</h1>
+  <div class="bg-contain bg-center bg-fixed" :style="{ backgroundImage: 'url(' + wallpaperUrl + ')' }">
+    <div class="max-w-screen flex flex-col items-center justify-center p-4">
+      <h1 class="bg-black/75 rounded-lg p-4 text-3xl sm:text-4xl font-bold text-white mb-8 text-center">T.E.L.E. Party Booth!</h1>
 
-    <div class="relative w-full max-w-2xl bg-gray-800 rounded-lg shadow-xl overflow-hidden mb-8">
-      <video v-if="photos.length < maxPhotos || shootingInProgress" ref="videoElement" class="w-full h-auto object-cover" autoplay></video>
-      <canvas ref="canvasElement" class="hidden"></canvas>
-      <canvas ref="gridCanvasElement" class="hidden"></canvas>
+      <div class="relative w-full max-w-sm sm:max-w-md lg:max-w-lg xl:max-w-xl rounded-lg shadow-xl overflow-hidden mb-8">
+        <video v-if="photos.length < maxPhotos || shootingInProgress" ref="videoElement" class="w-full h-auto object-cover border-4 border-transparent video-border-animation" autoplay></video>
+        <canvas ref="canvasElement" class="hidden"></canvas>
+        <canvas ref="gridCanvasElement" class="hidden"></canvas>
 
-      <div v-if="flashActive" class="absolute inset-0 bg-white opacity-0 animate-flash"></div>
+        <div v-if="flashActive" class="absolute inset-0 bg-white opacity-0 animate-flash"></div>
 
-      <div v-if="countdown > 0" class="absolute inset-0 flex items-center justify-center">
-        <span class="text-black text-9xl font-bold animate-pulse" :style="{ 'text-shadow': '2px 2px 4px rgba(255, 255, 255, 0.7)' }">{{ countdown }}</span>
+        <div v-if="countdown > 0" class="absolute inset-0 flex items-center justify-center">
+          <span class="text-black text-6xl sm:text-9xl font-bold animate-pulse" :style="{ 'text-shadow': '2px 2px 4px rgba(255, 255, 255, 0.7)' }">{{ countdown }}</span>
+        </div>
+
+        <div v-if="shootingInProgress" class="absolute top-4 right-4 bg-gray-800 text-white text-base sm:text-lg font-bold py-1 px-3 sm:py-2 sm:px-4 rounded-full">
+          Foto ke-{{ photos.length + 1 }}
+        </div>
       </div>
 
-      <div v-if="shootingInProgress" class="absolute top-4 right-4 bg-gray-800 text-white text-lg font-bold py-2 px-4 rounded-full">
-        Foto ke-{{ photos.length + 1 }}
+      <div v-if="photos.length < maxPhotos && !shootingInProgress" class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 mb-8 w-full max-w-sm sm:max-w-md xl:max-w-xl">
+        <button
+          @click="startPhotoSequence"
+          :disabled="!cameraActive || shootingInProgress"
+          class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out w-full"
+        >
+          Ambil 4 Foto Otomatis
+        </button>
       </div>
-    </div>
 
-    <div v-if="photos.length < maxPhotos && !shootingInProgress" class="flex space-x-4 mb-8">
-      <button
-        @click="startPhotoSequence"
-        :disabled="!cameraActive || shootingInProgress"
-        class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out"
-      >
-        Ambil 4 Foto Otomatis
-      </button>
-    </div>
-
-    <div v-if="photos.length === maxPhotos" class="w-full max-w-xl bg-gray-700 rounded-lg shadow-lg p-4">
-      <h2 class="text-2xl font-semibold text-white mb-4">Foto Grid Anda:</h2>
-      <img :src="gridPhotoUrl" alt="Foto Grid" class="w-full h-auto rounded-md mb-4 object-contain" v-if="gridPhotoUrl" />
-      <div class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 justify-center">
-        <button
-          @click="downloadGridPhoto"
-          :disabled="!gridPhotoUrl"
-          class="flex-1 bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out"
-        >
-          Unduh Foto Grid
-        </button>
-        <button
-          @click="resetPhotos"
-          class="flex-1 bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out"
-        >
-          Reset Foto
-        </button>
+      <div v-if="photos.length === maxPhotos" class="w-full max-w-sm sm:max-w-md lg:max-w-xl bg-gray-700 rounded-lg shadow-lg p-4">
+        <h2 class="text-xl sm:text-2xl font-semibold text-white mb-4 text-center">Foto Grid Anda:</h2>
+        <img :src="gridPhotoUrl" alt="Foto Grid" class="w-full h-auto rounded-md mb-4 object-contain" v-if="gridPhotoUrl" />
+        <div class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 justify-center">
+          <button
+            @click="downloadGridPhoto"
+            :disabled="!gridPhotoUrl"
+            class="flex-1 bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out"
+          >
+            Unduh Foto Grid
+          </button>
+          <button
+            @click="resetPhotos"
+            class="flex-1 bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out"
+          >
+            Reset Foto
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -52,6 +54,10 @@
 
 <script setup>
 import { ref, onMounted, onBeforeUnmount, watch } from 'vue';
+
+// Import wallpaper
+import wallpaper from './assets/wallpaper.jpg';
+const wallpaperUrl = ref(wallpaper);
 
 const frameImports = import.meta.glob('./assets/frame*.png', { eager: true, as: 'url' });
 const frameUrls = Object.values(frameImports);
@@ -78,8 +84,6 @@ const startCamera = async () => {
       video: {
         width: { ideal: targetPhotoSize },
         height: { ideal: targetPhotoSize },
-        // Hapus facingMode: 'user' jika ingin kamera default (biasanya belakang)
-        // atau biarkan jika ingin kamera depan tanpa mirror
         facingMode: 'user'
       }
     });
@@ -114,11 +118,8 @@ const takePhoto = async () => {
   canvas.width = targetPhotoSize;
   canvas.height = targetPhotoSize;
 
-  // Gambar video ke canvas TANPA mirroring
-  // Video sudah distreaming dengan rasio 1:1, jadi kita hanya perlu menggambarnya
   context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-  // Tambahkan bingkai
   const currentPhotoIndex = photos.value.length;
   if (currentPhotoIndex < frameUrls.length) {
     const frameImage = new Image();
@@ -247,7 +248,7 @@ onBeforeUnmount(() => {
 </script>
 
 <style>
-/* Tambahkan keyframes untuk animasi flash */
+/* Keyframes untuk animasi flash */
 @keyframes flash {
   0% { opacity: 0; }
   10% { opacity: 1; }
@@ -255,10 +256,22 @@ onBeforeUnmount(() => {
 }
 
 .animate-flash {
-  animation: flash 0.2s ease-out forwards; /* Durasi 0.2 detik */
+  animation: flash 0.2s ease-out forwards;
 }
 
-/* Pertahankan object-cover jika Anda ingin video mengisi area 1:1 */
+/* Animasi border warna-warni */
+@keyframes border-glow {
+  0% { border-color: #ef4444; } /* Red 500 */
+  25% { border-color: #3b82f6; } /* Blue 500 */
+  50% { border-color: #22c55e; } /* Green 500 */
+  75% { border-color: #eab308; } /* Yellow 500 */
+  100% { border-color: #ef4444; } /* Kembali ke Red 500 */
+}
+
+.video-border-animation {
+  animation: border-glow 5s infinite linear;
+}
+
 .object-cover {
   object-fit: cover;
 }
