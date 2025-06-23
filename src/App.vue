@@ -77,8 +77,13 @@ const furllogo = ref(flogo);
 
 const currentYear = new Date().getFullYear()
 
-const frameImports = import.meta.glob('./assets/frame*.png', { eager: true, as: 'url' });
-const frameUrls = Object.values(frameImports);
+// Impor frame akhir untuk grid
+import finalGridFrame from './assets/framegrid.png'; // Menggunakan nama file yang Anda berikan
+const finalGridFrameUrl = ref(finalGridFrame);
+
+// Hapus import frame individual (frame1.png, frame2.png, dst.)
+// const frameImports = import.meta.glob('./assets/frame*.png', { eager: true, as: 'url' });
+// const frameUrls = Object.values(frameImports); // Ini akan dihapus
 
 const videoElement = ref(null);
 const canvasElement = ref(null);
@@ -94,7 +99,7 @@ const flashActive = ref(false);
 let mediaStream = null;
 let countdownInterval = null;
 
-const targetPhotoSize = 480;
+const targetPhotoSize = 1080;
 
 const startCamera = async () => {
   try {
@@ -136,26 +141,27 @@ const takePhoto = async () => {
   canvas.width = targetPhotoSize;
   canvas.height = targetPhotoSize;
 
+  // Gambar video ke canvas tanpa frame individual
   context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-  const currentPhotoIndex = photos.value.length;
-  if (currentPhotoIndex < frameUrls.length) {
-    const frameImage = new Image();
-    frameImage.src = frameUrls[currentPhotoIndex];
-    
-    await new Promise(resolve => {
-      frameImage.onload = () => {
-        context.drawImage(frameImage, 0, 0, canvas.width, canvas.height);
-        resolve();
-      };
-      frameImage.onerror = (e) => {
-        console.error('Error loading frame image:', frameImage.src, e);
-        resolve();
-      };
-    });
-  } else {
-    console.warn(`Tidak ada bingkai untuk foto ke-${currentPhotoIndex + 1}. Pastikan ada ${maxPhotos} bingkai.`);
-  }
+  // Bagian kode untuk menambahkan frame individual Dihapus:
+  // const currentPhotoIndex = photos.value.length;
+  // if (currentPhotoIndex < frameUrls.length) {
+  //   const frameImage = new Image();
+  //   frameImage.src = frameUrls[currentPhotoIndex];
+  //   await new Promise(resolve => {
+  //     frameImage.onload = () => {
+  //       context.drawImage(frameImage, 0, 0, canvas.width, canvas.height);
+  //       resolve();
+  //     };
+  //     frameImage.onerror = (e) => {
+  //       console.error('Error loading frame image:', frameImage.src, e);
+  //       resolve();
+  //     };
+  //   });
+  // } else {
+  //   console.warn(`Tidak ada bingkai untuk foto ke-${currentPhotoIndex + 1}. Pastikan ada ${maxPhotos} bingkai.`);
+  // }
 
   const newPhotoUrl = canvas.toDataURL('image/png');
   photos.value.push(newPhotoUrl);
@@ -221,14 +227,30 @@ const combinePhotosIntoGrid = async () => {
     ctx.drawImage(img, pos.x, pos.y, photoWidth, photoHeight);
   });
 
-  gridPhotoUrl.value = gridCanvas.toDataURL('image/png');
+  // Tambahkan frame akhir di atas grid yang sudah digabung
+  const finalFrameImage = new Image();
+  finalFrameImage.src = finalGridFrameUrl.value;
+
+  await new Promise(resolve => {
+    finalFrameImage.onload = () => {
+      // Gambar frame akhir menutupi seluruh canvas grid
+      ctx.drawImage(finalFrameImage, 0, 0, gridCanvas.width, gridCanvas.height);
+      resolve();
+    };
+    finalFrameImage.onerror = (e) => {
+      console.error('Error loading final frame image:', finalFrameImage.src, e);
+      resolve(); // Tetap lanjutkan meskipun gambar gagal dimuat
+    };
+  });
+
+  gridPhotoUrl.value = gridCanvas.toDataURL('image/png', 1.0);
 };
 
 const downloadGridPhoto = () => {
   if (gridPhotoUrl.value) {
     const link = document.createElement('a');
     link.href = gridPhotoUrl.value;
-    link.download = 'photobooth_grid_image.png';
+    link.download = 'photobooth_grid_image_2160x2160.png';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
