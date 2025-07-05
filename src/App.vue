@@ -78,19 +78,15 @@ const furllogo = ref(flogo);
 const currentYear = new Date().getFullYear()
 
 // Impor frame akhir untuk grid
-import finalGridFrame from './assets/framegrid.png'; // Menggunakan nama file yang Anda berikan
+import finalGridFrame from './assets/framegrid.png';
 const finalGridFrameUrl = ref(finalGridFrame);
-
-// Hapus import frame individual (frame1.png, frame2.png, dst.)
-// const frameImports = import.meta.glob('./assets/frame*.png', { eager: true, as: 'url' });
-// const frameUrls = Object.values(frameImports); // Ini akan dihapus
 
 const videoElement = ref(null);
 const canvasElement = ref(null);
 const gridCanvasElement = ref(null);
 const photos = ref([]);
+const maxPhotos = 6;
 const gridPhotoUrl = ref('');
-const maxPhotos = 4;
 const cameraActive = ref(false);
 const countdown = ref(0);
 const shootingInProgress = ref(false);
@@ -99,7 +95,7 @@ const flashActive = ref(false);
 let mediaStream = null;
 let countdownInterval = null;
 
-const targetPhotoSize = 1080;
+const targetPhotoSize = 1080; // Tetap 1080 untuk resolusi pengambilan foto individual
 
 const startCamera = async () => {
   try {
@@ -141,27 +137,7 @@ const takePhoto = async () => {
   canvas.width = targetPhotoSize;
   canvas.height = targetPhotoSize;
 
-  // Gambar video ke canvas tanpa frame individual
   context.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-  // Bagian kode untuk menambahkan frame individual Dihapus:
-  // const currentPhotoIndex = photos.value.length;
-  // if (currentPhotoIndex < frameUrls.length) {
-  //   const frameImage = new Image();
-  //   frameImage.src = frameUrls[currentPhotoIndex];
-  //   await new Promise(resolve => {
-  //     frameImage.onload = () => {
-  //       context.drawImage(frameImage, 0, 0, canvas.width, canvas.height);
-  //       resolve();
-  //     };
-  //     frameImage.onerror = (e) => {
-  //       console.error('Error loading frame image:', frameImage.src, e);
-  //       resolve();
-  //     };
-  //   });
-  // } else {
-  //   console.warn(`Tidak ada bingkai untuk foto ke-${currentPhotoIndex + 1}. Pastikan ada ${maxPhotos} bingkai.`);
-  // }
 
   const newPhotoUrl = canvas.toDataURL('image/png');
   photos.value.push(newPhotoUrl);
@@ -201,11 +177,55 @@ const combinePhotosIntoGrid = async () => {
   const gridCanvas = gridCanvasElement.value;
   const ctx = gridCanvas.getContext('2d');
 
-  const photoWidth = targetPhotoSize;
-  const photoHeight = targetPhotoSize;
+  // 1. Muat gambar frame akhir untuk mendapatkan dimensinya
+  const finalFrameImage = new Image();
+  finalFrameImage.src = finalGridFrameUrl.value;
 
-  gridCanvas.width = photoWidth * 2;
-  gridCanvas.height = photoHeight * 2;
+  await new Promise(resolve => {
+    finalFrameImage.onload = () => resolve();
+    finalFrameImage.onerror = (e) => {
+      console.error('Error loading final frame image:', finalFrameImage.src, e);
+      // Lanjutkan proses meskipun frame gagal dimuat, tetapi grid mungkin tidak sesuai
+      resolve();
+    };
+  });
+
+  // Pastikan frame sudah dimuat dan memiliki dimensi
+  if (!finalFrameImage.width || !finalFrameImage.height) {
+      console.error("Gambar frame akhir gagal dimuat atau tidak memiliki dimensi. Tidak dapat membuat grid.");
+      // Tetapkan resolusi fallback jika frame tidak dimuat, agar tidak crash
+      gridCanvas.width = targetPhotoSize * 2; // Default 2 kolom * 1080
+      gridCanvas.height = targetPhotoSize * 3; // Default 3 baris * 1080
+  } else {
+      // 2. Atur dimensi canvas grid sesuai dengan dimensi asli frame
+      gridCanvas.width = finalFrameImage.width;
+      gridCanvas.height = finalFrameImage.height;
+  }
+
+  // --- BAGIAN PENTING: DEFINISIKAN SLOT FOTO ANDA DI SINI ---
+  // Anda HARUS mengganti nilai-nilai ini dengan koordinat dan dimensi asli
+  // dari area transparan di 'framegrid.png' Anda.
+  // Urutan array ini harus sesuai dengan urutan pengambilan foto (0-5).
+  const slotDefinitions = [
+    // Contoh dummy data: GANTI INI DENGAN NILAI NYATA!
+    // { x: 100, y: 50, width: 900, height: 900 },  // Slot untuk Foto 1 (indeks 0)
+    // { x: 1150, y: 50, width: 900, height: 900 }, // Slot untuk Foto 2 (indeks 1)
+    // { x: 100, y: 1000, width: 900, height: 900 },// Slot untuk Foto 3 (indeks 2)
+    // { x: 1150, y: 1000, width: 900, height: 900 },// Slot untuk Foto 4 (indeks 3)
+    // { x: 100, y: 1950, width: 900, height: 900 },// Slot untuk Foto 5 (indeks 4)
+    // { x: 1150, y: 1950, width: 900, height: 900 },// Slot untuk Foto 6 (indeks 5)
+
+    // Contoh nilai berdasarkan asumsi 2160x3240 frame dan 6 slot 1080x1080 yang pas
+    // Jika frame Anda memiliki margin, Anda harus sesuaikan nilai x, y, width, height ini.
+    { x: 45, y: 260, width: 500, height: 500 },
+    { x: (gridCanvas.width / 2) + 45, y: 260, width: 500, height: 500 },
+    { x: 45, y: 670, width: 500, height: 500 },
+    { x: (gridCanvas.width / 2) + 45, y: 670, width: 500, height: 500 },
+    { x: 45, y: 1120, width: 500, height: 500 },
+    { x: (gridCanvas.width / 2) + 45, y: 1120, width: 500, height: 500 },
+  ];
+  // --- AKHIR BAGIAN DEFINISI SLOT FOTO ---
+
 
   const imagesToLoad = photos.value.map(src => {
     const img = new Image();
@@ -215,34 +235,24 @@ const combinePhotosIntoGrid = async () => {
 
   const loadedImages = await Promise.all(imagesToLoad);
 
-  const positions = [
-    { x: 0, y: 0 },
-    { x: photoWidth, y: 0 },
-    { x: 0, y: photoHeight },
-    { x: photoWidth, y: photoHeight }
-  ];
-
   loadedImages.forEach((img, index) => {
-    const pos = positions[index];
-    ctx.drawImage(img, pos.x, pos.y, photoWidth, photoHeight);
+    if (slotDefinitions[index]) {
+      const slot = slotDefinitions[index];
+      // Gambar setiap foto (yang awalnya 1080x1080) ke dalam slot yang ditentukan.
+      // Ini akan menskalakan/meregangkan foto individual agar sesuai dengan slot frame.
+      ctx.drawImage(img, slot.x, slot.y, slot.width, slot.height);
+    } else {
+      console.warn(`Definisi slot tidak ditemukan untuk foto ke-${index + 1}.`);
+    }
   });
 
-  // Tambahkan frame akhir di atas grid yang sudah digabung
-  const finalFrameImage = new Image();
-  finalFrameImage.src = finalGridFrameUrl.value;
+  // Gambar frame akhir di atas foto yang sudah digabung
+  // Ini akan menutupi seluruh canvas grid sesuai dengan ukuran asli frame
+  if (finalFrameImage.width && finalFrameImage.height) {
+    ctx.drawImage(finalFrameImage, 0, 0, gridCanvas.width, gridCanvas.height);
+  }
 
-  await new Promise(resolve => {
-    finalFrameImage.onload = () => {
-      // Gambar frame akhir menutupi seluruh canvas grid
-      ctx.drawImage(finalFrameImage, 0, 0, gridCanvas.width, gridCanvas.height);
-      resolve();
-    };
-    finalFrameImage.onerror = (e) => {
-      console.error('Error loading final frame image:', finalFrameImage.src, e);
-      resolve(); // Tetap lanjutkan meskipun gambar gagal dimuat
-    };
-  });
-
+  // Perbarui nama file unduhan agar sesuai dengan resolusi aktual dari canvas grid
   gridPhotoUrl.value = gridCanvas.toDataURL('image/png', 1.0);
 };
 
@@ -250,7 +260,8 @@ const downloadGridPhoto = () => {
   if (gridPhotoUrl.value) {
     const link = document.createElement('a');
     link.href = gridPhotoUrl.value;
-    link.download = 'photobooth_grid_image_2160x2160.png';
+    const canvas = gridCanvasElement.value;
+    link.download = `photobooth_grid_image_${canvas.width}x${canvas.height}.png`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -310,5 +321,20 @@ onBeforeUnmount(() => {
 
 .video-border-animation {
   animation: border-glow 5s infinite linear;
+}
+
+/* Pastikan elemen root dan body tidak memiliki scrolling */
+html, body {
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+}
+
+#app {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
 }
 </style>
