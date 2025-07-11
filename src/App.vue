@@ -57,9 +57,8 @@
 
     <footer class="fixed bottom-0 left-0 right-0 py-4 text-center text-white z-20">
       <img :src="furllogo" alt="Footer Logo" class="h-16 mx-auto mb-1 object-contain" />
-      <p class="text-xs">&copy; {{ currentYear }}, Preview <a href="https://labtek.iqbalarauf.my.id"
-				target="__blank">Laboratorium Teknologi</a> for <a href="https://corsyava.com"
-				target="__blank">Onielity</a></p>
+      <p class="text-xs">&copy; {{ currentYear }}, <a href="https://corsyava.com"
+				target="__blank">Onielity Official</a></p>
     </footer>
   </div>
 </template>
