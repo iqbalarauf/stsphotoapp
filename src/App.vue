@@ -1,72 +1,71 @@
 <template>
-  <div class="min-h-screen relative overflow-hidden">
-    <div
-      class="absolute inset-0 z-0 bg-cover bg-center bg-fixed"
-      :style="{ backgroundImage: 'url(' + wallpaperUrl + ')', aspectRatio: '16 / 9', minWidth: '100vw', minHeight: '100vh' }"
-    ></div>
+ <div class="min-h-screen relative overflow-hidden">
+   <div
+     class="absolute top-0 bottom-0 z-0 bg-contain bg-center bg-fixed max-w-[600px] min-h-screen mx-auto left-0 right-0"
+     :style="{ backgroundImage: 'url(' + wallpaperUrl + ')', aspectRatio: '16 / 9', height: 'auto' }"
+   ></div>
 
-    <div class="flex flex-col items-center justify-start pt-8 pb-20 px-4 relative z-10 min-h-screen">
-      <img :src="logoUrl" alt="Vue Photobooth Logo" class="h-16 sm:h-20 max-w-full object-contain" />
+   <div class="flex flex-col items-center justify-center pt-8 pb-20 px-4 relative z-10 min-h-screen max-w-[600px] mx-auto">
+     <img :src="logoUrl" alt="Vue Photobooth Logo" class="h-24 sm:h-30 mb-10 max-w-full object-contain" />
 
-      <div class="relative w-full max-w-sm sm:max-w-md lg:max-w-lg xl:max-w-xl bg-gray-800 rounded-lg shadow-xl overflow-hidden mb-8">
-        <video v-if="photos.length < maxPhotos || shootingInProgress" ref="videoElement" class="w-full h-auto object-cover border-4 border-transparent video-border-animation" autoplay></video>
-        <canvas ref="canvasElement" class="hidden"></canvas>
-        <canvas ref="gridCanvasElement" class="hidden"></canvas>
+     <div class="relative w-full max-w-sm sm:max-w-md lg:max-w-lg xl:max-w-xl bg-gray-800 rounded-lg shadow-xl overflow-hidden mb-8">
+       <video v-if="photos.length < maxPhotos || shootingInProgress" ref="videoElement" class="w-full h-auto object-cover border-4 border-transparent video-border-animation" autoplay></video>
+       <canvas ref="canvasElement" class="hidden"></canvas>
+       <canvas ref="gridCanvasElement" class="hidden"></canvas>
 
-        <div v-if="flashActive" class="absolute inset-0 bg-white opacity-0 animate-flash"></div>
+       <div v-if="flashActive" class="absolute inset-0 bg-white opacity-0 animate-flash"></div>
 
-        <div v-if="countdown > 0" class="absolute inset-0 flex items-center justify-center">
-          <span class="text-black text-6xl sm:text-9xl font-bold animate-pulse" :style="{ 'text-shadow': '2px 2px 4px rgba(255, 255, 255, 0.7)' }">{{ countdown }}</span>
-        </div>
+       <div v-if="countdown > 0" class="absolute inset-0 flex items-center justify-center">
+         <span class="text-black text-6xl sm:text-9xl font-bold animate-pulse" :style="{ 'text-shadow': '2px 2px 4px rgba(255, 255, 255, 0.7)' }">{{ countdown }}</span>
+       </div>
 
-        <div v-if="shootingInProgress" class="absolute top-4 right-4 bg-gray-800 text-white text-base sm:text-lg font-bold py-1 px-3 sm:py-2 sm:px-4 rounded-full">
-          Foto ke-{{ photos.length + 1 }}
-        </div>
-      </div>
+       <div v-if="shootingInProgress" class="absolute top-4 right-4 bg-gray-800 text-white text-base sm:text-lg font-bold py-1 px-3 sm:py-2 sm:px-4 rounded-full">
+         Foto ke-{{ photos.length + 1 }}
+       </div>
+     </div>
 
-      <div v-if="photos.length < maxPhotos && !shootingInProgress" class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 mb-8 w-full max-w-sm sm:max-w-md xl:max-w-xl">
-        <button
-          @click="startPhotoSequence"
-          :disabled="!cameraActive || shootingInProgress"
-          class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out w-full"
-        >
-          Ambil Foto
-        </button>
-      </div>
+     <div v-if="photos.length < maxPhotos && !shootingInProgress" class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 mb-8 w-full max-w-sm sm:max-w-md xl:max-w-xl">
+       <button
+         @click="startPhotoSequence"
+         :disabled="!cameraActive || shootingInProgress"
+         class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out w-full"
+       >
+         Ambil Foto
+       </button>
+     </div>
 
-      <div v-if="photos.length === maxPhotos" class="w-full max-w-sm sm:max-w-md lg:max-w-xl bg-gray-700 rounded-lg shadow-lg p-4">
-        <h2 class="text-xl sm:text-2xl font-semibold text-white mb-4 text-center">Foto Grid Anda:</h2>
-        <img :src="gridPhotoUrl" alt="Foto Grid" class="w-full h-auto rounded-md mb-4 object-contain" v-if="gridPhotoUrl" />
-        <div class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 justify-center">
-          <button
-            @click="downloadGridPhoto"
-            :disabled="!gridPhotoUrl"
-            class="flex-1 bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out"
-          >
-            Unduh Foto
-          </button>
-          <button
-            @click="resetPhotos"
-            class="flex-1 bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out"
-          >
-            Retake
-          </button>
-        </div>
-      </div>
-      </div>
+     <div v-if="photos.length === maxPhotos" class="w-full max-w-sm sm:max-w-md lg:max-w-xl bg-gray-300 rounded-lg shadow-lg p-4">
+       <h2 class="text-xl sm:text-2xl font-semibold text-black mb-4 text-center">Foto Grid Anda:</h2>
+       <img :src="gridPhotoUrl" alt="Foto Grid" class="w-full h-auto rounded-md mb-4 object-contain" v-if="gridPhotoUrl" />
+       <div class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 justify-center">
+         <button
+           @click="downloadGridPhoto"
+           :disabled="!gridPhotoUrl"
+           class="flex-1 bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out"
+         >
+           Unduh Foto
+         </button>
+         <button
+           @click="resetPhotos"
+           class="flex-1 bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out"
+         >
+           Retake
+         </button>
+       </div>
+     </div>
+   </div>
 
-    <footer class="fixed bottom-0 left-0 right-0 py-4 text-center text-white z-20">
-      <img :src="furllogo" alt="Footer Logo" class="h-16 mx-auto mb-1 object-contain" />
-      <p class="text-xs">&copy; {{ currentYear }}, <a href="https://corsyava.com"
-				target="__blank">Onielity Official</a></p>
-    </footer>
-  </div>
+   <footer class="fixed bottom-0 left-0 right-0 py-4 text-center text-white z-20">
+     <p class="text-xs">&copy; {{ currentYear }}, <a href="https://corsyava.com"
+       target="__blank">Onielity Official</a></p>
+   </footer>
+ </div>
 </template>
 
 <script setup>
 import { ref, onMounted, onBeforeUnmount, watch } from 'vue';
 
-import wallpaper from './assets/wallpaper.jpg';
+import wallpaper from './assets/background.png';
 const wallpaperUrl = ref(wallpaper);
 
 import logo from './assets/logo.png';
