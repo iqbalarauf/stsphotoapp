@@ -1,28 +1,29 @@
 <template>
-
-  <div class="absolute top-0 bottom-0 z-0 bg-contain bg-center max-w-[600px] min-h-screen mx-auto left-0 right-0"
-    :style="{ backgroundImage: 'url(' + wallpaperUrl + ')', aspectRatio: '16 / 9', height: 'auto' }"></div>
-   <div class="relative">
-    <div v-if="showWelcomePopup" class="fixed inset-0 flex items-center justify-center z-50 p-4">
-      <div class="bg-white rounded-lg shadow-xl p-6 max-w-sm w-full text-center">
-        <h2 class="text-xl font-bold text-gray-900 mb-4">Informasi Mengenai Photobooth Let's Party On!</h2>
-        <p class="text-gray-700 mb-6 text-justify">
-          1. Photobooth ini akan mengambil sebanyak 6 foto untuk dua frame. Hasil foto dapat kamu unduh setelah selesai.
-        </p>
-        <p class="text-gray-700 mb-6 text-justify">
-          2. Data foto kamu <b>tidak akan disimpan di server Onielity</b>. Semua proses dan penyimpanan hanya terjadi di perangkat
-          kamu.
-        </p>
-        <button @click="dismissWelcomePopup"
-          class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg transition duration-300 ease-in-out ">
-          OK
-        </button>
+  <div class="max-h-screen relative overflow-auto">
+    <div class="absolute top-0 bottom-0 z-0 bg-contain bg-center max-w-[600px] min-h-screen mx-auto left-0 right-0"
+      :style="{ backgroundImage: 'url(' + wallpaperUrl + ')', aspectRatio: '16 / 9', height: 'auto' }"></div>
+    <div class="relative">
+      <div v-if="showWelcomePopup" class="fixed inset-0 flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-lg shadow-xl p-6 max-w-sm w-full text-center">
+          <h2 class="text-xl font-bold text-gray-900 mb-4">Informasi Mengenai Photobooth Let's Party On!</h2>
+          <p class="text-gray-700 mb-6 text-justify">
+            1. Photobooth ini akan mengambil sebanyak 6 foto untuk dua frame. Hasil foto dapat kamu unduh setelah
+            selesai.
+          </p>
+          <p class="text-gray-700 mb-6 text-justify">
+            2. Data foto kamu <b>tidak akan disimpan di server Onielity</b>. Semua proses dan penyimpanan hanya terjadi
+            di perangkat
+            kamu.
+          </p>
+          <button @click="dismissWelcomePopup"
+            class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg transition duration-300 ease-in-out ">
+            OK
+          </button>
+        </div>
       </div>
     </div>
-  </div>
-  <div class="max-h-screen relative overflow-auto">
     <div class="flex flex-col items-center p-4 relative z-10 max-w-[600px] mx-auto min-h-screen">
-      <img :src="logoUrl" alt="Vue Photobooth Logo" class="h-24 sm:h-30 max-w-full object-contain" />
+      <img :src="logoUrl" alt="Vue Photobooth Logo" class="h-24 max-w-full object-contain" />
 
       <div
         class="relative w-full max-w-sm sm:max-w-md lg:max-w-lg xl:max-w-xl bg-gray-800 rounded-lg shadow-xl overflow-hidden mb-8 mt-4">
