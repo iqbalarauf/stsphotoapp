@@ -1,65 +1,80 @@
 <template>
- <div class="min-h-screen relative overflow-hidden">
-   <div
-     class="absolute top-0 bottom-0 z-0 bg-contain bg-center bg-fixed max-w-[600px] min-h-screen mx-auto left-0 right-0"
-     :style="{ backgroundImage: 'url(' + wallpaperUrl + ')', aspectRatio: '16 / 9', height: 'auto' }"
-   ></div>
 
-   <div class="flex flex-col items-center justify-center pt-8 pb-20 px-4 relative z-10 min-h-screen max-w-[600px] mx-auto">
-     <img :src="logoUrl" alt="Vue Photobooth Logo" class="h-24 sm:h-30 mb-10 max-w-full object-contain" />
+  <div class="absolute top-0 bottom-0 z-0 bg-contain bg-center max-w-[600px] min-h-screen mx-auto left-0 right-0"
+    :style="{ backgroundImage: 'url(' + wallpaperUrl + ')', aspectRatio: '16 / 9', height: 'auto' }"></div>
+   <div class="relative">
+    <div v-if="showWelcomePopup" class="fixed inset-0 flex items-center justify-center z-50 p-4">
+      <div class="bg-white rounded-lg shadow-xl p-6 max-w-sm w-full text-center">
+        <h2 class="text-xl font-bold text-gray-900 mb-4">Informasi Mengenai Photobooth Let's Party On!</h2>
+        <p class="text-gray-700 mb-6 text-justify">
+          1. Photobooth ini akan mengambil sebanyak 6 foto untuk dua frame. Hasil foto dapat kamu unduh setelah selesai.
+        </p>
+        <p class="text-gray-700 mb-6 text-justify">
+          2. Data foto kamu <b>tidak akan disimpan di server Onielity</b>. Semua proses dan penyimpanan hanya terjadi di perangkat
+          kamu.
+        </p>
+        <button @click="dismissWelcomePopup"
+          class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg transition duration-300 ease-in-out ">
+          OK
+        </button>
+      </div>
+    </div>
+  </div>
+  <div class="max-h-screen relative overflow-auto">
+    <div class="flex flex-col items-center p-4 relative z-10 max-w-[600px] mx-auto min-h-screen">
+      <img :src="logoUrl" alt="Vue Photobooth Logo" class="h-24 sm:h-30 max-w-full object-contain" />
 
-     <div class="relative w-full max-w-sm sm:max-w-md lg:max-w-lg xl:max-w-xl bg-gray-800 rounded-lg shadow-xl overflow-hidden mb-8">
-       <video v-if="photos.length < maxPhotos || shootingInProgress" ref="videoElement" class="w-full h-auto object-cover border-4 border-transparent video-border-animation" autoplay></video>
-       <canvas ref="canvasElement" class="hidden"></canvas>
-       <canvas ref="gridCanvasElement" class="hidden"></canvas>
+      <div
+        class="relative w-full max-w-sm sm:max-w-md lg:max-w-lg xl:max-w-xl bg-gray-800 rounded-lg shadow-xl overflow-hidden mb-8 mt-4">
+        <video v-if="photos.length < maxPhotos || shootingInProgress" ref="videoElement"
+          class="w-full h-auto object-cover border-4 border-transparent video-border-animation" autoplay></video>
+        <canvas ref="canvasElement" class="hidden"></canvas>
+        <canvas ref="gridCanvasElement" class="hidden"></canvas>
 
-       <div v-if="flashActive" class="absolute inset-0 bg-white opacity-0 animate-flash"></div>
+        <div v-if="flashActive" class="absolute inset-0 bg-white opacity-0 animate-flash"></div>
 
-       <div v-if="countdown > 0" class="absolute inset-0 flex items-center justify-center">
-         <span class="text-black text-6xl sm:text-9xl font-bold animate-pulse" :style="{ 'text-shadow': '2px 2px 4px rgba(255, 255, 255, 0.7)' }">{{ countdown }}</span>
-       </div>
+        <div v-if="countdown > 0" class="absolute inset-0 flex items-center justify-center">
+          <span class="text-black text-6xl sm:text-9xl font-bold animate-pulse"
+            :style="{ 'text-shadow': '2px 2px 4px rgba(255, 255, 255, 0.7)' }">{{ countdown }}</span>
+        </div>
 
-       <div v-if="shootingInProgress" class="absolute top-4 right-4 bg-gray-800 text-white text-base sm:text-lg font-bold py-1 px-3 sm:py-2 sm:px-4 rounded-full">
-         Foto ke-{{ photos.length + 1 }}
-       </div>
-     </div>
+        <div v-if="shootingInProgress"
+          class="absolute top-4 right-4 bg-gray-800 text-white text-base sm:text-lg font-bold py-1 px-3 sm:py-2 sm:px-4 rounded-full">
+          Foto ke-{{ photos.length + 1 }}
+        </div>
+      </div>
 
-     <div v-if="photos.length < maxPhotos && !shootingInProgress" class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 mb-8 w-full max-w-sm sm:max-w-md xl:max-w-xl">
-       <button
-         @click="startPhotoSequence"
-         :disabled="!cameraActive || shootingInProgress"
-         class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out w-full"
-       >
-         Ambil Foto
-       </button>
-     </div>
+      <div v-if="photos.length < maxPhotos && !shootingInProgress"
+        class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 mb-8 w-full max-w-sm sm:max-w-md xl:max-w-xl">
+        <button @click="startPhotoSequence" :disabled="!cameraActive || shootingInProgress"
+          class="bg-green-500 hover:bg-green-600 dark:text-white text-black font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out w-full">
+          Ambil Foto
+        </button>
+      </div>
 
-     <div v-if="photos.length === maxPhotos" class="w-full max-w-sm sm:max-w-md lg:max-w-xl bg-gray-300 rounded-lg shadow-lg p-4">
-       <h2 class="text-xl sm:text-2xl font-semibold text-black mb-4 text-center">Foto Grid Anda:</h2>
-       <img :src="gridPhotoUrl" alt="Foto Grid" class="w-full h-auto rounded-md mb-4 object-contain" v-if="gridPhotoUrl" />
-       <div class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 justify-center">
-         <button
-           @click="downloadGridPhoto"
-           :disabled="!gridPhotoUrl"
-           class="flex-1 bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out"
-         >
-           Unduh Foto
-         </button>
-         <button
-           @click="resetPhotos"
-           class="flex-1 bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out"
-         >
-           Retake
-         </button>
-       </div>
-     </div>
-   </div>
+      <div v-if="photos.length === maxPhotos"
+        class="w-full max-w-sm sm:max-w-md lg:max-w-xl bg-gray-300 rounded-lg shadow-lg p-4">
+        <h2 class="text-xl sm:text-2xl font-semibold text-black mb-4 text-center">Foto Anda</h2>
+        <img :src="gridPhotoUrl" alt="Foto Grid" class="w-full h-auto rounded-md mb-4 object-contain"
+          v-if="gridPhotoUrl" />
+        <div class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 justify-center">
+          <button @click="downloadGridPhoto" :disabled="!gridPhotoUrl"
+            class="flex-1 bg-indigo-500 hover:bg-indigo-600 dark:text-white text-black font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out">
+            Unduh Foto
+          </button>
+          <button @click="resetPhotos"
+            class="flex-1 bg-yellow-500 hover:bg-yellow-600 dark:text-white text-black font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out">
+            Retake
+          </button>
+        </div>
+      </div>
+    </div>
 
-   <footer class="fixed bottom-0 left-0 right-0 py-4 text-center text-white z-20">
-     <p class="text-xs">&copy; {{ currentYear }}, <a href="https://corsyava.com"
-       target="__blank">Onielity Official</a></p>
-   </footer>
- </div>
+    <footer class="fixed bottom-0 left-0 right-0 py-4 text-center text-white z-20">
+      <p class="text-xs">&copy; {{ currentYear }}, <a href="https://corsyava.com" target="__blank">Onielity Official</a>
+      </p>
+    </footer>
+  </div>
 </template>
 
 <script setup>
@@ -89,6 +104,9 @@ const cameraActive = ref(false);
 const countdown = ref(0);
 const shootingInProgress = ref(false);
 const flashActive = ref(false);
+
+// State baru untuk mengontrol tampilan popup
+const showWelcomePopup = ref(false);
 
 let mediaStream = null;
 let countdownInterval = null;
@@ -190,14 +208,14 @@ const combinePhotosIntoGrid = async () => {
 
   // Pastikan frame sudah dimuat dan memiliki dimensi
   if (!finalFrameImage.width || !finalFrameImage.height) {
-      console.error("Gambar frame akhir gagal dimuat atau tidak memiliki dimensi. Tidak dapat membuat grid.");
-      // Tetapkan resolusi fallback jika frame tidak dimuat, agar tidak crash
-      gridCanvas.width = targetPhotoSize * 2; // Default 2 kolom * 1080
-      gridCanvas.height = targetPhotoSize * 3; // Default 3 baris * 1080
+    console.error("Gambar frame akhir gagal dimuat atau tidak memiliki dimensi. Tidak dapat membuat grid.");
+    // Tetapkan resolusi fallback jika frame tidak dimuat, agar tidak crash
+    gridCanvas.width = targetPhotoSize * 2; // Default 2 kolom * 1080
+    gridCanvas.height = targetPhotoSize * 3; // Default 3 baris * 1080
   } else {
-      // 2. Atur dimensi canvas grid sesuai dengan dimensi asli frame
-      gridCanvas.width = finalFrameImage.width;
-      gridCanvas.height = finalFrameImage.height;
+    // 2. Atur dimensi canvas grid sesuai dengan dimensi asli frame
+    gridCanvas.width = finalFrameImage.width;
+    gridCanvas.height = finalFrameImage.height;
   }
 
   // --- BAGIAN PENTING: DEFINISIKAN SLOT FOTO ANDA DI SINI ---
@@ -276,6 +294,12 @@ const resetPhotos = () => {
   startCamera();
 };
 
+// Fungsi untuk menutup popup
+const dismissWelcomePopup = () => {
+  showWelcomePopup.value = false;
+  startCamera(); // Memulai kamera setelah popup ditutup
+};
+
 watch(photos, (newPhotos) => {
   if (newPhotos.length === maxPhotos) {
     combinePhotosIntoGrid();
@@ -283,6 +307,7 @@ watch(photos, (newPhotos) => {
 }, { deep: true });
 
 onMounted(() => {
+  showWelcomePopup.value = true;
   startCamera();
 });
 
@@ -299,9 +324,17 @@ onBeforeUnmount(() => {
 <style>
 /* Keyframes untuk animasi flash */
 @keyframes flash {
-  0% { opacity: 0; }
-  10% { opacity: 1; }
-  100% { opacity: 0; }
+  0% {
+    opacity: 0;
+  }
+
+  10% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+  }
 }
 
 .animate-flash {
@@ -310,11 +343,31 @@ onBeforeUnmount(() => {
 
 /* Animasi border warna-warni */
 @keyframes border-glow {
-  0% { border-color: #ef4444; } /* Red 500 */
-  25% { border-color: #3b82f6; } /* Blue 500 */
-  50% { border-color: #22c55e; } /* Green 500 */
-  75% { border-color: #eab308; } /* Yellow 500 */
-  100% { border-color: #ef4444; } /* Kembali ke Red 500 */
+  0% {
+    border-color: #ef4444;
+  }
+
+  /* Red 500 */
+  25% {
+    border-color: #3b82f6;
+  }
+
+  /* Blue 500 */
+  50% {
+    border-color: #22c55e;
+  }
+
+  /* Green 500 */
+  75% {
+    border-color: #eab308;
+  }
+
+  /* Yellow 500 */
+  100% {
+    border-color: #ef4444;
+  }
+
+  /* Kembali ke Red 500 */
 }
 
 .video-border-animation {
@@ -322,7 +375,8 @@ onBeforeUnmount(() => {
 }
 
 /* Pastikan elemen root dan body tidak memiliki scrolling */
-html, body {
+html,
+body {
   overflow: hidden;
   margin: 0;
   padding: 0;
