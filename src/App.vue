@@ -27,7 +27,7 @@
       </div>
     </div>
     <div class="flex flex-col items-center p-4 relative z-10 max-w-[600px] mx-auto min-h-screen overscroll-contain">
-      <img :src="logoUrl" alt="Vue Photobooth Logo" class="h-24 max-w-full object-contain" />
+      <img v-if="photos.length !== maxPhotos" :src="logoUrl" alt="Vue Photobooth Logo" class="h-24 max-w-full object-contain" />
 
       <div
         class="relative w-full max-w-sm sm:max-w-md lg:max-w-lg xl:max-w-xl bg-gray-800 rounded-lg shadow-xl overflow-hidden mb-8 mt-4">
