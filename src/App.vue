@@ -1,6 +1,6 @@
 <template>
   <div class="max-h-screen relative overflow-auto">
-    <div class="absolute top-0 bottom-0 z-0 bg-contain bg-center min-h-screen mx-auto left-0 right-0"
+    <div class="fixed top-0 bottom-0 z-0 bg-contain bg-center min-h-screen mx-auto left-0 right-0"
       :style="{ backgroundImage: 'url(' + wallpaperUrl + ')', aspectRatio: '16 / 9', height: 'auto' }"></div>
     <div class="relative">
       <div v-if="showWelcomePopup" class="fixed inset-0 flex items-center justify-center z-50 p-4">
@@ -26,7 +26,7 @@
         </div>
       </div>
     </div>
-    <div class="flex flex-col items-center p-4 relative z-10 max-w-[600px] mx-auto min-h-screen">
+    <div class="flex flex-col items-center p-4 relative max-w-[600px] mx-auto min-h-screen mb-10">
       <img :src="logoUrl" alt="Vue Photobooth Logo" class="h-24 max-w-full object-contain" />
 
       <div
@@ -74,11 +74,11 @@
         </div>
       </div>
     </div>
-
-    <footer class="fixed bottom-0 left-0 right-0 py-4 text-center text-white z-20">
-      <p class="text-xs">&copy; {{ currentYear }}, <a href="https://corsyava.com" target="__blank">Onielity Official</a>
-      </p>
-    </footer>
+    <footer class="fixed bottom-0 left-0 right-0 py-6 text-center text-white z-20">
+        <p class="text-xs">&copy; {{ currentYear }}, <a href="https://corsyava.com" target="__blank">Onielity
+            Official</a>
+        </p>
+      </footer>
   </div>
 </template>
 
