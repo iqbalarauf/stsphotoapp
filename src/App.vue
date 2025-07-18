@@ -1,6 +1,6 @@
 <template>
   <div class="max-h-screen relative overflow-auto">
-    <div class="absolute top-0 bottom-0 z-0 bg-contain bg-center max-w-[600px] min-h-screen mx-auto left-0 right-0"
+    <div class="absolute top-0 bottom-0 z-0 bg-contain bg-center min-h-screen mx-auto left-0 right-0"
       :style="{ backgroundImage: 'url(' + wallpaperUrl + ')', aspectRatio: '16 / 9', height: 'auto' }"></div>
     <div class="relative">
       <div v-if="showWelcomePopup" class="fixed inset-0 flex items-center justify-center z-50 p-4">
@@ -15,14 +15,18 @@
             di perangkat
             kamu.
           </p>
+          <p class="text-gray-700 mb-6 text-justify">
+            3. Kami merekomendasikan kamu untuk menggunakan Google Chrome (baik versi mobile ataupun desktop)
+            kamu.
+          </p>
           <button @click="dismissWelcomePopup"
-            class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg transition duration-300 ease-in-out ">
+            class="bg-black dark:bg-indigo-600 dark:text-white text-black font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out">
             OK
           </button>
         </div>
       </div>
     </div>
-    <div class="flex flex-col items-center p-4 relative z-10 max-w-[600px] mx-auto min-h-screen">
+    <div class="flex flex-col items-center p-4 relative z-10 max-w-[600px] mx-auto min-h-screen overscroll-contain">
       <img :src="logoUrl" alt="Vue Photobooth Logo" class="h-24 max-w-full object-contain" />
 
       <div
