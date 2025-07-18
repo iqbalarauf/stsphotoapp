@@ -26,7 +26,7 @@
         </div>
       </div>
     </div>
-    <div class="flex flex-col items-center p-4 relative max-w-[600px] mx-auto min-h-screen mb-10">
+    <div class="flex flex-col items-center p-4 relative max-w-[600px] mx-auto min-h-screen">
       <img :src="logoUrl" alt="Vue Photobooth Logo" class="h-24 max-w-full object-contain" />
 
       <div
@@ -59,7 +59,7 @@
 
       <div v-if="photos.length === maxPhotos"
         class="w-full max-w-sm sm:max-w-md lg:max-w-xl bg-gray-300 rounded-lg shadow-lg p-4">
-        <h2 class="text-xl sm:text-2xl font-semibold text-black mb-4 text-center">Foto Anda</h2>
+        <h2 class="text-xl sm:text-2xl font-semibold text-black mb-4 text-center">Preview Foto</h2>
         <img :src="gridPhotoUrl" alt="Foto Grid" class="w-full h-auto rounded-md mb-4 object-contain"
           v-if="gridPhotoUrl" />
         <div class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 justify-center">
@@ -73,12 +73,13 @@
           </button>
         </div>
       </div>
+    <footer class="bottom-0 left-0 right-0 py-6 text-center text-white z-20">
+      <img :src="furllogo" alt="Footer Logo" class="h-16 mx-auto mx-5 object-contain" />
+      <p class="text-xs">&copy; {{ currentYear }}, <a href="https://corsyava.com" target="__blank">Onielity
+          Official</a>
+      </p>
+    </footer>
     </div>
-    <footer class="fixed bottom-0 left-0 right-0 py-6 text-center text-white z-20">
-        <p class="text-xs">&copy; {{ currentYear }}, <a href="https://corsyava.com" target="__blank">Onielity
-            Official</a>
-        </p>
-      </footer>
   </div>
 </template>
 
