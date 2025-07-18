@@ -27,7 +27,7 @@
       </div>
     </div>
     <div class="flex flex-col items-center p-4 relative z-10 max-w-[600px] mx-auto min-h-screen">
-      <img v-if="photos.length !== maxPhotos" :src="logoUrl" alt="Vue Photobooth Logo" class="h-24 max-w-full object-contain" />
+      <img :src="logoUrl" alt="Vue Photobooth Logo" class="h-24 max-w-full object-contain" />
 
       <div
         class="relative w-full max-w-sm sm:max-w-md lg:max-w-lg xl:max-w-xl bg-gray-800 rounded-lg shadow-xl overflow-hidden mb-8 mt-4">
@@ -377,5 +377,21 @@ onBeforeUnmount(() => {
 
 .video-border-animation {
   animation: border-glow 5s infinite linear;
+}
+
+/* Pastikan elemen root dan body tidak memiliki scrolling */
+html,
+body {
+  overflow: auto;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+}
+
+#app {
+  width: 100%;
+  height: 100%;
+  overflow: auto;
 }
 </style>
