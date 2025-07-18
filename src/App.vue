@@ -378,20 +378,4 @@ onBeforeUnmount(() => {
 .video-border-animation {
   animation: border-glow 5s infinite linear;
 }
-
-/* Pastikan elemen root dan body tidak memiliki scrolling */
-html,
-body {
-  overflow: hidden;
-  margin: 0;
-  padding: 0;
-  width: 100%;
-  height: 100%;
-}
-
-#app {
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-}
 </style>
