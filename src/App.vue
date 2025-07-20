@@ -17,7 +17,6 @@
           </p>
           <p class="text-gray-700 mb-6 text-justify">
             3. Kami merekomendasikan kamu untuk menggunakan Google Chrome (baik versi mobile ataupun desktop)
-            kamu.
           </p>
           <button @click="dismissWelcomePopup"
             class="bg-black dark:bg-indigo-600 dark:text-white text-black font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out">
