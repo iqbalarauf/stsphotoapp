@@ -2,7 +2,15 @@
   <div class="max-h-screen relative overflow-auto">
     <div class="fixed top-0 bottom-0 z-0 bg-contain bg-center min-h-screen mx-auto left-0 right-0"
       :style="{ backgroundImage: 'url(' + wallpaperUrl + ')', aspectRatio: '16 / 9', height: 'auto' }"></div>
-    <div class="relative">
+
+    <div v-if="waitingRoomActive" class="relative flex flex-col items-center justify-center min-h-screen p-4">
+      <img :src="displayLogo" alt="Logo" class="h-48 max-w-full object-contain mb-4" />
+      <p class="text-white text-lg sm:text-xl font-bold text-center">
+        {{ message }}
+      </p>
+    </div>
+
+    <div v-else>
       <div v-if="showWelcomePopup" class="fixed inset-0 flex items-center justify-center z-50 p-4">
         <div class="bg-gray-300 rounded-lg shadow-xl p-6 max-w-sm w-full text-center">
           <h2 class="text-xl font-bold text-gray-900 mb-4">Informasi Mengenai Photobooth Let's Party On!</h2>
@@ -24,60 +32,60 @@
           </button>
         </div>
       </div>
-    </div>
-    <div class="flex flex-col items-center p-4 relative max-w-[600px] mx-auto min-h-screen">
-      <img :src="logoUrl" alt="Vue Photobooth Logo" class="h-24 max-w-full object-contain" />
+      <div class="flex flex-col items-center p-4 relative max-w-[600px] mx-auto min-h-screen">
+        <img :src="logoUrl" alt="Vue Photobooth Logo" class="h-24 max-w-full object-contain" />
 
-      <div
-        class="relative w-full max-w-sm sm:max-w-md lg:max-w-lg xl:max-w-xl bg-gray-800 rounded-lg shadow-xl overflow-hidden mb-8 mt-4">
-        <video v-if="photos.length < maxPhotos || shootingInProgress" ref="videoElement"
-          class="w-full h-auto object-cover border-4 border-transparent video-border-animation" autoplay></video>
-        <canvas ref="canvasElement" class="hidden"></canvas>
-        <canvas ref="gridCanvasElement" class="hidden"></canvas>
+        <div
+          class="relative w-full max-w-sm sm:max-w-md lg:max-w-lg xl:max-w-xl bg-gray-800 rounded-lg shadow-xl overflow-hidden mb-8 mt-4">
+          <video v-if="photos.length < maxPhotos || shootingInProgress" ref="videoElement"
+            class="w-full h-auto object-cover border-4 border-transparent video-border-animation" autoplay></video>
+          <canvas ref="canvasElement" class="hidden"></canvas>
+          <canvas ref="gridCanvasElement" class="hidden"></canvas>
 
-        <div v-if="flashActive" class="absolute inset-0 bg-white opacity-0 animate-flash"></div>
+          <div v-if="flashActive" class="absolute inset-0 bg-white opacity-0 animate-flash"></div>
 
-        <div v-if="countdown > 0" class="absolute inset-0 flex items-center justify-center">
-          <span class="text-black text-6xl sm:text-9xl font-bold animate-pulse"
-            :style="{ 'text-shadow': '2px 2px 4px rgba(255, 255, 255, 0.7)' }">{{ countdown }}</span>
+          <div v-if="countdown > 0" class="absolute inset-0 flex items-center justify-center">
+            <span class="text-black text-6xl sm:text-9xl font-bold animate-pulse"
+              :style="{ 'text-shadow': '2px 2px 4px rgba(255, 255, 255, 0.7)' }">{{ countdown }}</span>
+          </div>
+
+          <div v-if="shootingInProgress"
+            class="absolute top-4 right-4 bg-gray-800 text-white text-base sm:text-lg font-bold py-1 px-3 sm:py-2 sm:px-4 rounded-full">
+            Foto ke-{{ photos.length + 1 }}
+          </div>
         </div>
 
-        <div v-if="shootingInProgress"
-          class="absolute top-4 right-4 bg-gray-800 text-white text-base sm:text-lg font-bold py-1 px-3 sm:py-2 sm:px-4 rounded-full">
-          Foto ke-{{ photos.length + 1 }}
-        </div>
-      </div>
-
-      <div v-if="photos.length < maxPhotos && !shootingInProgress"
-        class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 mb-8 w-full max-w-sm sm:max-w-md xl:max-w-xl">
-        <button @click="startPhotoSequence" :disabled="!cameraActive || shootingInProgress"
-          class="bg-green-500 hover:bg-green-600 dark:text-white text-black font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out w-full">
-          Ambil Foto
-        </button>
-      </div>
-
-      <div v-if="photos.length === maxPhotos"
-        class="w-full max-w-sm sm:max-w-md lg:max-w-xl bg-gray-300 rounded-lg shadow-lg p-4">
-        <h2 class="text-xl sm:text-2xl font-semibold text-black mb-4 text-center">Preview Foto</h2>
-        <img :src="gridPhotoUrl" alt="Foto Grid" class="w-full h-auto rounded-md mb-4 object-contain"
-          v-if="gridPhotoUrl" />
-        <div class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 justify-center">
-          <button @click="downloadGridPhoto" :disabled="!gridPhotoUrl"
-            class="flex-1 bg-indigo-500 hover:bg-indigo-600 dark:text-white text-black font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out">
-            Unduh Foto
-          </button>
-          <button @click="resetPhotos"
-            class="flex-1 bg-yellow-500 hover:bg-yellow-600 dark:text-white text-black font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out">
-            Retake
+        <div v-if="photos.length < maxPhotos && !shootingInProgress"
+          class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 mb-8 w-full max-w-sm sm:max-w-md xl:max-w-xl">
+          <button @click="startPhotoSequence" :disabled="!cameraActive || shootingInProgress"
+            class="bg-green-500 hover:bg-green-600 dark:text-white text-black font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out w-full">
+            Ambil Foto
           </button>
         </div>
+
+        <div v-if="photos.length === maxPhotos"
+          class="w-full max-w-sm sm:max-w-md lg:max-w-xl bg-gray-300 rounded-lg shadow-lg p-4">
+          <h2 class="text-xl sm:text-2xl font-semibold text-black mb-4 text-center">Preview Foto</h2>
+          <img :src="gridPhotoUrl" alt="Foto Grid" class="w-full h-auto rounded-md mb-4 object-contain"
+            v-if="gridPhotoUrl" />
+          <div class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 justify-center">
+            <button @click="downloadGridPhoto" :disabled="!gridPhotoUrl"
+              class="flex-1 bg-indigo-500 hover:bg-indigo-600 dark:text-white text-black font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out">
+              Unduh Foto
+            </button>
+            <button @click="resetPhotos"
+              class="flex-1 bg-yellow-500 hover:bg-yellow-600 dark:text-white text-black font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out">
+              Retake
+            </button>
+          </div>
+        </div>
+        <footer class="bottom-0 left-0 right-0 py-6 text-center text-white z-20">
+          <img :src="furllogo" alt="Footer Logo" class="h-16 mx-auto mx-5 object-contain" />
+          <p class="text-xs">&copy; {{ currentYear }}, <a href="https://corsyava.com" target="__blank">Onielity
+              Official</a>
+          </p>
+        </footer>
       </div>
-    <footer class="bottom-0 left-0 right-0 py-6 text-center text-white z-20">
-      <img :src="furllogo" alt="Footer Logo" class="h-16 mx-auto mx-5 object-contain" />
-      <p class="text-xs">&copy; {{ currentYear }}, <a href="https://corsyava.com" target="__blank">Onielity
-          Official</a>
-      </p>
-    </footer>
     </div>
   </div>
 </template>
@@ -93,7 +101,11 @@ const logoUrl = ref(logo);
 import flogo from './assets/footer-logo.png';
 const furllogo = ref(flogo);
 
-const currentYear = new Date().getFullYear()
+// Import logo kedua (pastikan Anda memiliki file ini)
+import secondLogo from './assets/footer-logo.png'; // Ganti dengan path logo kedua Anda
+const secondLogoUrl = ref(secondLogo);
+
+const currentYear = new Date().getFullYear();
 
 // Impor frame akhir untuk grid
 import finalGridFrame from './assets/framegrid.png';
@@ -112,6 +124,11 @@ const flashActive = ref(false);
 
 // State baru untuk mengontrol tampilan popup
 const showWelcomePopup = ref(false);
+
+// State baru untuk waiting room
+const waitingRoomActive = ref(false);
+const message = ref('');
+const displayLogo = ref('');
 
 let mediaStream = null;
 let countdownInterval = null;
@@ -229,7 +246,7 @@ const combinePhotosIntoGrid = async () => {
   // Urutan array ini harus sesuai dengan urutan pengambilan foto (0-5).
   const slotDefinitions = [
     // Contoh dummy data: GANTI INI DENGAN NILAI NYATA!
-    // { x: 100, y: 50, width: 900, height: 900 },  // Slot untuk Foto 1 (indeks 0)
+    // { x: 100, y: 50, width: 900, height: 900 },   // Slot untuk Foto 1 (indeks 0)
     // { x: 1150, y: 50, width: 900, height: 900 }, // Slot untuk Foto 2 (indeks 1)
     // { x: 100, y: 1000, width: 900, height: 900 },// Slot untuk Foto 3 (indeks 2)
     // { x: 1150, y: 1000, width: 900, height: 900 },// Slot untuk Foto 4 (indeks 3)
@@ -312,8 +329,28 @@ watch(photos, (newPhotos) => {
 }, { deep: true });
 
 onMounted(() => {
-  showWelcomePopup.value = true;
-  startCamera();
+  const jakartaOffset = 7 * 60; // UTC+7 for Jakarta in minutes
+  const now = new Date();
+  const utc = now.getTime() + (now.getTimezoneOffset() * 60000); // Current UTC time in milliseconds
+  const jakartaTime = new Date(utc + (jakartaOffset * 60000)); // Current Jakarta time in milliseconds
+
+  // Define the target dates in Jakarta time (UTC+7)
+  const comingSoonDate = new Date('2025-07-26T00:00:00+07:00'); // July 26, 2025, 00:00 Jakarta time
+  const thankYouDate = new Date('2025-07-26T23:59:59+07:00'); // August 26, 2025, 23:59 Jakarta time
+
+  if (jakartaTime < comingSoonDate) {
+    waitingRoomActive.value = true;
+    message.value = 'Coming Soon. July 26th, 2025';
+    displayLogo.value = logoUrl.value;
+  } else if (jakartaTime > thankYouDate) {
+    waitingRoomActive.value = true;
+    message.value = 'Thank You, See you at #The24rdJourniel!';
+    displayLogo.value = secondLogoUrl.value;
+  } else {
+    // If within the active period, show the welcome popup and start camera
+    showWelcomePopup.value = true;
+    startCamera();
+  }
 });
 
 onBeforeUnmount(() => {
@@ -393,5 +430,10 @@ body {
   width: 100%;
   height: 100%;
   overflow: auto;
+}
+
+/* Drop shadow for text */
+.drop-shadow-lg {
+  text-shadow: 0 4px 6px rgba(0, 0, 0, 0.4);
 }
 </style>
