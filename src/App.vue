@@ -344,7 +344,7 @@ onMounted(() => {
     displayLogo.value = logoUrl.value;
   } else if (jakartaTime > thankYouDate) {
     waitingRoomActive.value = true;
-    message.value = 'Thank You, See you at #The24rdJourniel!';
+    message.value = 'Thank you, see you at next event!';
     displayLogo.value = secondLogoUrl.value;
   } else {
     // If within the active period, show the welcome popup and start camera
