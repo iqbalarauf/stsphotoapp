@@ -9,17 +9,17 @@
         {{ message }}
       </p>
     </div>
-
+    
     <div v-else>
       <div v-if="showWelcomePopup" class="fixed inset-0 flex items-center justify-center z-50 p-4">
         <div class="bg-gray-300 rounded-lg shadow-xl p-6 max-w-sm w-full text-center">
-          <h2 class="text-xl font-bold text-gray-900 mb-4">Informasi Mengenai Photobooth Let's Party On!</h2>
+          <h2 class="text-xl font-bold text-gray-900 mb-4">Informasi Mengenai Preview Photobooth by Labtek I:AR</h2>
           <p class="text-gray-700 mb-6 text-justify">
             1. Photobooth ini akan mengambil sebanyak 6 foto untuk dua frame. Hasil foto dapat kamu unduh setelah
             selesai.
           </p>
           <p class="text-gray-700 mb-6 text-justify">
-            2. Data foto kamu <b>tidak akan disimpan di server Onielity</b>. Semua proses dan penyimpanan hanya terjadi
+            2. Data foto kamu <b>tidak akan disimpan di server</b>. Semua proses dan penyimpanan hanya terjadi
             di perangkat
             kamu.
           </p>
@@ -81,8 +81,7 @@
         </div>
         <footer class="bottom-0 left-0 right-0 py-6 text-center text-white z-20">
           <img :src="furllogo" alt="Footer Logo" class="h-16 mx-auto mx-5 object-contain" />
-          <p class="text-xs">&copy; {{ currentYear }}, <a href="https://corsyava.com" target="__blank">Onielity
-              Official</a>
+          <p class="text-xs">&copy; {{ currentYear }}, Laboratorium Teknologi by <a href="https://iqbalarauf.my.id" target="__blank">IqbalARauf</a>
           </p>
         </footer>
       </div>
@@ -328,6 +327,7 @@ watch(photos, (newPhotos) => {
   }
 }, { deep: true });
 
+/* Gunakan jika membutuhkan timer 
 onMounted(() => {
   const jakartaOffset = 7 * 60; // UTC+7 for Jakarta in minutes
   const now = new Date();
@@ -352,6 +352,12 @@ onMounted(() => {
     startCamera();
   }
 });
+*/
+
+onMounted(() => {
+    showWelcomePopup.value = true;
+    startCamera();
+  });
 
 onBeforeUnmount(() => {
   if (mediaStream) {
