@@ -336,7 +336,7 @@ onMounted(() => {
 
   // Define the target dates in Jakarta time (UTC+7)
   const comingSoonDate = new Date('2025-07-26T00:00:00+07:00'); // July 26, 2025, 00:00 Jakarta time
-  const thankYouDate = new Date('2025-07-26T23:59:59+07:00'); // August 26, 2025, 23:59 Jakarta time
+  const thankYouDate = new Date('2025-08-26T23:59:59+07:00'); // August 26, 2025, 23:59 Jakarta time
 
   if (jakartaTime < comingSoonDate) {
     waitingRoomActive.value = true;
