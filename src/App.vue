@@ -130,13 +130,21 @@ const waitingRoomActive = ref(false);
 const message = ref('');
 const displayLogo = ref('');
 
-let mediaStream = null;
+let mediaStream = null; // Deklarasikan sebagai `let` agar bisa di-reassign ke `null`
 let countdownInterval = null;
 
 const targetPhotoSize = 1080; // Tetap 1080 untuk resolusi pengambilan foto individual
 
 const startCamera = async () => {
   try {
+    // Hentikan dan bersihkan stream yang ada sebelum meminta yang baru
+    if (mediaStream) {
+      mediaStream.getTracks().forEach(track => track.stop());
+      videoElement.value.srcObject = null;
+      mediaStream = null; // Penting: reset referensi di sini
+      cameraActive.value = false;
+    }
+
     mediaStream = await navigator.mediaDevices.getUserMedia({
       video: {
         width: { ideal: targetPhotoSize },
@@ -144,13 +152,29 @@ const startCamera = async () => {
         facingMode: 'user'
       }
     });
+
     videoElement.value.srcObject = mediaStream;
     cameraActive.value = true;
     photos.value = [];
     gridPhotoUrl.value = '';
+
+    // Tunggu video untuk memuat metadata sebelum menandainya siap
+    // Ini penting untuk Safari yang mungkin membutuhkan waktu lebih lama untuk inisialisasi
+    await new Promise(resolve => {
+      videoElement.value.onloadedmetadata = () => {
+        resolve();
+      };
+      // Timeout jika onloadedmetadata tidak pernah terpanggil (misal ada error lain)
+      setTimeout(() => {
+        console.warn("Video metadata did not load in time.");
+        resolve();
+      }, 3000); // Batas waktu 3 detik
+    });
+
   } catch (error) {
     console.error('Error accessing camera:', error);
-    alert('Tidak dapat mengakses kamera. Pastikan Anda memberikan izin dan kamera tidak sedang digunakan.');
+    alert('Tidak dapat mengakses kamera. Pastikan Anda memberikan izin dan kamera tidak sedang digunakan oleh aplikasi lain.');
+    cameraActive.value = false; // Setel ke false jika gagal
   }
 };
 
@@ -162,7 +186,8 @@ const triggerFlash = () => {
 };
 
 const takePhoto = async () => {
-  if (!videoElement.value || !canvasElement.value) {
+  if (!videoElement.value || !canvasElement.value || !cameraActive.value) {
+    console.warn("Cannot take photo: video element or canvas not ready, or camera not active.");
     return;
   }
 
@@ -175,6 +200,17 @@ const takePhoto = async () => {
   canvas.width = targetPhotoSize;
   canvas.height = targetPhotoSize;
 
+  // Pastikan video sedang memutar frame yang valid
+  if (video.readyState < video.HAVE_CURRENT_DATA) {
+    console.warn("Video is not ready to draw frame.");
+    // Anda mungkin ingin menambahkan penundaan atau mencoba lagi
+    await new Promise(resolve => setTimeout(resolve, 100)); // Coba lagi setelah sedikit penundaan
+    if (video.readyState < video.HAVE_CURRENT_DATA) {
+        console.error("Video still not ready after retry, skipping photo.");
+        return;
+    }
+  }
+
   context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
   const newPhotoUrl = canvas.toDataURL('image/png');
@@ -183,6 +219,7 @@ const takePhoto = async () => {
 
 const startPhotoSequence = async () => {
   if (!cameraActive.value || photos.value.length === maxPhotos || shootingInProgress.value) {
+    console.warn("Cannot start photo sequence: camera not active, max photos reached, or shooting already in progress.");
     return;
   }
 
@@ -203,7 +240,7 @@ const startPhotoSequence = async () => {
     });
 
     await takePhoto();
-    await new Promise(resolve => setTimeout(resolve, 500));
+    await new Promise(resolve => setTimeout(resolve, 500)); // Jeda antar foto
   }
   shootingInProgress.value = false;
   countdown.value = 0;
@@ -215,7 +252,6 @@ const combinePhotosIntoGrid = async () => {
   const gridCanvas = gridCanvasElement.value;
   const ctx = gridCanvas.getContext('2d');
 
-  // 1. Muat gambar frame akhir untuk mendapatkan dimensinya
   const finalFrameImage = new Image();
   finalFrameImage.src = finalGridFrameUrl.value;
 
@@ -223,19 +259,16 @@ const combinePhotosIntoGrid = async () => {
     finalFrameImage.onload = () => resolve();
     finalFrameImage.onerror = (e) => {
       console.error('Error loading final frame image:', finalFrameImage.src, e);
-      // Lanjutkan proses meskipun frame gagal dimuat, tetapi grid mungkin tidak sesuai
+      // Lanjutkan proses meskipun frame gagal dimuat
       resolve();
     };
   });
 
-  // Pastikan frame sudah dimuat dan memiliki dimensi
   if (!finalFrameImage.width || !finalFrameImage.height) {
-    console.error("Gambar frame akhir gagal dimuat atau tidak memiliki dimensi. Tidak dapat membuat grid.");
-    // Tetapkan resolusi fallback jika frame tidak dimuat, agar tidak crash
-    gridCanvas.width = targetPhotoSize * 2; // Default 2 kolom * 1080
-    gridCanvas.height = targetPhotoSize * 3; // Default 3 baris * 1080
+    console.error("Gambar frame akhir gagal dimuat atau tidak memiliki dimensi. Tidak dapat membuat grid. Menggunakan fallback.");
+    gridCanvas.width = targetPhotoSize * 2;
+    gridCanvas.height = targetPhotoSize * 3;
   } else {
-    // 2. Atur dimensi canvas grid sesuai dengan dimensi asli frame
     gridCanvas.width = finalFrameImage.width;
     gridCanvas.height = finalFrameImage.height;
   }
@@ -245,14 +278,6 @@ const combinePhotosIntoGrid = async () => {
   // dari area transparan di 'framegrid.png' Anda.
   // Urutan array ini harus sesuai dengan urutan pengambilan foto (0-5).
   const slotDefinitions = [
-    // Contoh dummy data: GANTI INI DENGAN NILAI NYATA!
-    // { x: 100, y: 50, width: 900, height: 900 },   // Slot untuk Foto 1 (indeks 0)
-    // { x: 1150, y: 50, width: 900, height: 900 }, // Slot untuk Foto 2 (indeks 1)
-    // { x: 100, y: 1000, width: 900, height: 900 },// Slot untuk Foto 3 (indeks 2)
-    // { x: 1150, y: 1000, width: 900, height: 900 },// Slot untuk Foto 4 (indeks 3)
-    // { x: 100, y: 1950, width: 900, height: 900 },// Slot untuk Foto 5 (indeks 4)
-    // { x: 1150, y: 1950, width: 900, height: 900 },// Slot untuk Foto 6 (indeks 5)
-
     // Contoh nilai berdasarkan asumsi 2160x3240 frame dan 6 slot 1080x1080 yang pas
     // Jika frame Anda memiliki margin, Anda harus sesuaikan nilai x, y, width, height ini.
     { x: 45, y: 260, width: 500, height: 500 },
@@ -276,21 +301,16 @@ const combinePhotosIntoGrid = async () => {
   loadedImages.forEach((img, index) => {
     if (slotDefinitions[index]) {
       const slot = slotDefinitions[index];
-      // Gambar setiap foto (yang awalnya 1080x1080) ke dalam slot yang ditentukan.
-      // Ini akan menskalakan/meregangkan foto individual agar sesuai dengan slot frame.
       ctx.drawImage(img, slot.x, slot.y, slot.width, slot.height);
     } else {
       console.warn(`Definisi slot tidak ditemukan untuk foto ke-${index + 1}.`);
     }
   });
 
-  // Gambar frame akhir di atas foto yang sudah digabung
-  // Ini akan menutupi seluruh canvas grid sesuai dengan ukuran asli frame
   if (finalFrameImage.width && finalFrameImage.height) {
     ctx.drawImage(finalFrameImage, 0, 0, gridCanvas.width, gridCanvas.height);
   }
 
-  // Perbarui nama file unduhan agar sesuai dengan resolusi aktual dari canvas grid
   gridPhotoUrl.value = gridCanvas.toDataURL('image/png', 1.0);
 };
 
@@ -313,13 +333,13 @@ const resetPhotos = () => {
   countdown.value = 0;
   clearInterval(countdownInterval);
   flashActive.value = false;
+  // Memanggil startCamera akan secara otomatis menghentikan stream yang ada
   startCamera();
 };
 
-// Fungsi untuk menutup popup
 const dismissWelcomePopup = () => {
   showWelcomePopup.value = false;
-  startCamera(); // Memulai kamera setelah popup ditutup
+  startCamera();
 };
 
 watch(photos, (newPhotos) => {
@@ -347,9 +367,8 @@ onMounted(() => {
     message.value = 'Thank you, see you at next event!';
     displayLogo.value = secondLogoUrl.value;
   } else {
-    // If within the active period, show the welcome popup and start camera
     showWelcomePopup.value = true;
-    startCamera();
+    // Kamera akan dimulai oleh dismissWelcomePopup setelah user klik OK
   }
 });
 
@@ -357,6 +376,7 @@ onBeforeUnmount(() => {
   if (mediaStream) {
     mediaStream.getTracks().forEach(track => track.stop());
     videoElement.value.srcObject = null;
+    mediaStream = null; // Pastikan mediaStream di-null-kan di sini
     cameraActive.value = false;
   }
   clearInterval(countdownInterval);
