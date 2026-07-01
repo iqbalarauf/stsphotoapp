@@ -13,7 +13,7 @@
     <div v-else>
       <div v-if="showWelcomePopup" class="fixed inset-0 flex items-center justify-center z-50 p-4">
         <div class="bg-gray-300 rounded-lg shadow-xl p-6 max-w-sm w-full text-center">
-          <h2 class="text-xl font-bold text-gray-900 mb-4">Informasi Mengenai Photobooth Let's Party On!</h2>
+          <h2 class="text-xl font-bold text-gray-900 mb-4">Informasi Mengenai Photobooth</h2>
           <p class="text-gray-700 mb-6 text-justify">
             1. Photobooth ini akan mengambil sebanyak 6 foto untuk dua frame. Hasil foto dapat kamu unduh setelah
             selesai.
