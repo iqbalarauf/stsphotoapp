@@ -38,7 +38,8 @@
         <div
           class="relative w-full max-w-sm sm:max-w-md lg:max-w-lg xl:max-w-xl bg-gray-800 rounded-lg shadow-xl overflow-hidden mb-8 mt-4">
           <video v-if="photos.length < maxPhotos || shootingInProgress" ref="videoElement"
-            class="w-full h-auto object-cover border-4 border-transparent video-border-animation" autoplay></video>
+            class="w-full h-auto object-cover border-4 border-transparent video-border-animation" autoplay playsinline
+            muted></video>
           <canvas ref="canvasElement" class="hidden"></canvas>
           <canvas ref="gridCanvasElement" class="hidden"></canvas>
 
@@ -91,7 +92,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount, watch } from 'vue';
+import { ref, onMounted, onBeforeUnmount, watch, nextTick } from 'vue';
 
 import wallpaper from './assets/background.png';
 const wallpaperUrl = ref(wallpaper);
@@ -135,8 +136,110 @@ let countdownInterval = null;
 
 const targetPhotoSize = 1080; // Tetap 1080 untuk resolusi pengambilan foto individual
 
+const getBrowserDiagnostics = () => {
+  const ua = navigator.userAgent || '';
+  const isSafari = /safari/i.test(ua) && !/chrome|chromium|android/i.test(ua);
+  const isIOS = /iPhone|iPad|iPod/i.test(ua);
+
+  return {
+    ua,
+    isSafari,
+    isIOS,
+    hasMediaDevices: !!navigator.mediaDevices,
+    hasGetUserMedia: !!navigator.mediaDevices?.getUserMedia,
+    isSecureContext: window.isSecureContext,
+  };
+};
+
+const resolveCameraErrorMessage = (error, diagnostics) => {
+  const errorName = error?.name || 'UnknownError';
+
+  if (!diagnostics.isSecureContext) {
+    return 'Kamera hanya bisa diakses di koneksi HTTPS atau localhost.';
+  }
+
+  if (!diagnostics.hasGetUserMedia) {
+    return 'Browser ini belum mendukung akses kamera (getUserMedia).';
+  }
+
+  if (errorName === 'NotAllowedError' || errorName === 'SecurityError') {
+    return 'Akses kamera ditolak. Buka pengaturan browser dan izinkan kamera untuk situs ini.';
+  }
+
+  if (errorName === 'NotReadableError' || errorName === 'TrackStartError') {
+    return 'Kamera sedang dipakai aplikasi lain. Tutup aplikasi lain lalu coba lagi.';
+  }
+
+  if (errorName === 'OverconstrainedError' || errorName === 'ConstraintNotSatisfiedError') {
+    return 'Konfigurasi kamera tidak didukung perangkat ini. Sistem akan mencoba mode kompatibel.';
+  }
+
+  if (errorName === 'NotFoundError' || errorName === 'DevicesNotFoundError') {
+    return 'Tidak ada kamera yang terdeteksi pada perangkat ini.';
+  }
+
+  return 'Tidak dapat mengakses kamera. Pastikan izin kamera aktif dan kamera tidak dipakai aplikasi lain.';
+};
+
+const requestCameraStream = async (diagnostics) => {
+  const safariFriendlyConstraints = [
+    { video: { facingMode: { ideal: 'user' } }, audio: false },
+    { video: true, audio: false },
+  ];
+
+  const defaultConstraints = {
+    video: {
+      width: { ideal: targetPhotoSize },
+      height: { ideal: targetPhotoSize },
+      facingMode: 'user'
+    },
+    audio: false,
+  };
+
+  const constraintCandidates = diagnostics.isSafari
+    ? [
+      ...safariFriendlyConstraints,
+      defaultConstraints,
+    ]
+    : [defaultConstraints, ...safariFriendlyConstraints];
+
+  let lastError = null;
+
+  for (const constraints of constraintCandidates) {
+    try {
+      return await navigator.mediaDevices.getUserMedia(constraints);
+    } catch (error) {
+      lastError = error;
+      console.warn('getUserMedia gagal dengan constraints:', constraints, error);
+    }
+  }
+
+  throw lastError || new Error('Semua percobaan akses kamera gagal.');
+};
+
 const startCamera = async () => {
   try {
+    const diagnostics = getBrowserDiagnostics();
+
+    if (!diagnostics.hasGetUserMedia) {
+      throw new Error('getUserMedia tidak tersedia pada browser ini.');
+    }
+
+    await nextTick();
+
+    if (!videoElement.value) {
+      throw new Error('Video element belum siap.');
+    }
+
+    // Jika stream lama masih ada, cukup pasang ulang ke elemen video.
+    if (mediaStream && mediaStream.getTracks().some(track => track.readyState === 'live')) {
+      videoElement.value.srcObject = mediaStream;
+      cameraActive.value = true;
+      photos.value = [];
+      gridPhotoUrl.value = '';
+      return;
+    }
+
     // Hentikan dan bersihkan stream yang ada sebelum meminta yang baru
     if (mediaStream) {
       mediaStream.getTracks().forEach(track => track.stop());
@@ -145,15 +248,12 @@ const startCamera = async () => {
       cameraActive.value = false;
     }
 
-    mediaStream = await navigator.mediaDevices.getUserMedia({
-      video: {
-        width: { ideal: targetPhotoSize },
-        height: { ideal: targetPhotoSize },
-        facingMode: 'user'
-      }
-    });
+    mediaStream = await requestCameraStream(diagnostics);
 
     videoElement.value.srcObject = mediaStream;
+    await videoElement.value.play().catch((playError) => {
+      console.warn('Pemutaran video kamera gagal otomatis:', playError);
+    });
     cameraActive.value = true;
     photos.value = [];
     gridPhotoUrl.value = '';
@@ -172,8 +272,17 @@ const startCamera = async () => {
     });
 
   } catch (error) {
-    console.error('Error accessing camera:', error);
-    alert('Tidak dapat mengakses kamera. Pastikan Anda memberikan izin dan kamera tidak sedang digunakan oleh aplikasi lain.');
+    const diagnostics = getBrowserDiagnostics();
+    const errorName = error?.name || 'UnknownError';
+    const userMessage = resolveCameraErrorMessage(error, diagnostics);
+
+    console.error('Error accessing camera:', {
+      errorName,
+      error,
+      diagnostics,
+    });
+
+    alert(`${userMessage}\n\nKode error: ${errorName}\nBrowser: ${diagnostics.ua}`);
     cameraActive.value = false; // Setel ke false jika gagal
   }
 };
@@ -333,8 +442,11 @@ const resetPhotos = () => {
   countdown.value = 0;
   clearInterval(countdownInterval);
   flashActive.value = false;
-  // Memanggil startCamera akan secara otomatis menghentikan stream yang ada
-  startCamera();
+
+  nextTick(() => {
+    // Pastikan elemen video sudah terpasang ulang sebelum mengakses kamera.
+    startCamera();
+  });
 };
 
 const dismissWelcomePopup = () => {
@@ -355,12 +467,12 @@ onMounted(() => {
   const jakartaTime = new Date(utc + (jakartaOffset * 60000)); // Current Jakarta time in milliseconds
 
   // Define the target dates in Jakarta time (UTC+7)
-  const comingSoonDate = new Date('2025-07-26T00:00:00+07:00'); // July 26, 2025, 00:00 Jakarta time
-  const thankYouDate = new Date('2025-08-26T23:59:59+07:00'); // August 26, 2025, 23:59 Jakarta time
+  const comingSoonDate = new Date('2026-07-01T00:00:00+07:00'); // July 26, 2026, 00:00 Jakarta time
+  const thankYouDate = new Date('2026-08-26T23:59:59+07:00'); // August 26, 2026, 23:59 Jakarta time
 
   if (jakartaTime < comingSoonDate) {
     waitingRoomActive.value = true;
-    message.value = 'Coming Soon. July 26th, 2025';
+    message.value = 'Coming Soon. July 1st, 2026';
     displayLogo.value = logoUrl.value;
   } else if (jakartaTime > thankYouDate) {
     waitingRoomActive.value = true;
