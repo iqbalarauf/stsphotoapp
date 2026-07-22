@@ -1,7 +1,7 @@
 <template>
   <div class="max-h-screen relative overflow-auto">
-    <div class="fixed top-0 bottom-0 z-0 bg-contain bg-center min-h-screen mx-auto left-0 right-0"
-      :style="{ backgroundImage: 'url(' + wallpaperUrl + ')', aspectRatio: '16 / 9', height: 'auto' }"></div>
+    <div class="fixed inset-0 z-0 bg-cover bg-no-repeat min-h-screen"
+      :style="{ backgroundImage: 'url(' + wallpaperUrl + ')', backgroundPosition: 'center center' }"></div>
 
     <div v-if="waitingRoomActive" class="relative flex flex-col items-center justify-center min-h-screen p-4">
       <img :src="displayLogo" alt="Logo" class="h-48 max-w-full object-contain mb-4" />
@@ -13,7 +13,7 @@
     <div v-else>
       <div v-if="showWelcomePopup" class="fixed inset-0 flex items-center justify-center z-50 p-4">
         <div class="bg-gray-300 rounded-lg shadow-xl p-6 max-w-sm w-full text-center">
-          <h2 class="text-xl font-bold text-gray-900 mb-4">Informasi Mengenai Photobooth</h2>
+          <h2 class="text-xl font-bold text-gray-900 mb-4">Informasi Mengenai Photobooth #24thJourNiel</h2>
           <p class="text-gray-700 mb-6 text-justify">
             1. Photobooth ini akan mengambil sebanyak 6 foto untuk dua frame. Hasil foto dapat kamu unduh setelah
             selesai.
@@ -23,16 +23,13 @@
             di perangkat
             kamu.
           </p>
-          <p class="text-gray-700 mb-6 text-justify">
-            3. Kami merekomendasikan kamu untuk menggunakan Google Chrome (baik versi mobile ataupun desktop)
-          </p>
           <button @click="dismissWelcomePopup"
             class="bg-black dark:bg-indigo-600 dark:text-white text-black font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out">
             OK
           </button>
         </div>
       </div>
-      <div class="flex flex-col items-center p-4 relative max-w-[600px] mx-auto min-h-screen">
+      <div class="flex flex-col items-center p-4 pb-24 relative max-w-[360px] mx-auto min-h-screen">
         <img :src="logoUrl" alt="Vue Photobooth Logo" class="h-24 max-w-full object-contain" />
 
         <div
@@ -80,9 +77,9 @@
             </button>
           </div>
         </div>
-        <footer class="bottom-0 left-0 right-0 py-6 text-center text-white z-20">
-          <img :src="furllogo" alt="Footer Logo" class="h-16 mx-auto mx-5 object-contain" />
-          <p class="text-xs">&copy; {{ currentYear }}, <a href="https://corsyava.com" target="__blank">Onielity
+        <footer class="fixed bottom-0 left-0 right-0 z-20 py-4 text-center text-white">
+          <img :src="furllogo" alt="Footer Logo" class="h-16 mx-auto object-contain" />
+          <p class="text-xs">&copy; {{ currentYear }}, <a href="https://corsyava.id" target="__blank">Onielity
               Official</a>
           </p>
         </footer>
@@ -94,7 +91,7 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount, watch, nextTick } from 'vue';
 
-import wallpaper from './assets/background.png';
+import wallpaper from './assets/background.jpeg';
 const wallpaperUrl = ref(wallpaper);
 
 import logo from './assets/logo.png';
@@ -389,8 +386,8 @@ const combinePhotosIntoGrid = async () => {
   const slotDefinitions = [
     // Contoh nilai berdasarkan asumsi 2160x3240 frame dan 6 slot 1080x1080 yang pas
     // Jika frame Anda memiliki margin, Anda harus sesuaikan nilai x, y, width, height ini.
-    { x: 45, y: 260, width: 500, height: 500 },
-    { x: (gridCanvas.width / 2) + 45, y: 260, width: 500, height: 500 },
+    { x: 45, y: 200, width: 500, height: 500 },
+    { x: (gridCanvas.width / 2) + 45, y: 200, width: 500, height: 500 },
     { x: 45, y: 670, width: 500, height: 500 },
     { x: (gridCanvas.width / 2) + 45, y: 670, width: 500, height: 500 },
     { x: 45, y: 1120, width: 500, height: 500 },
