@@ -420,16 +420,46 @@ const combinePhotosIntoGrid = async () => {
   gridPhotoUrl.value = gridCanvas.toDataURL('image/png', 1.0);
 };
 
-const downloadGridPhoto = () => {
-  if (gridPhotoUrl.value) {
-    const link = document.createElement('a');
-    link.href = gridPhotoUrl.value;
-    const canvas = gridCanvasElement.value;
-    link.download = `photobooth_grid_image_${canvas.width}x${canvas.height}.png`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+const dataURLToBlob = (dataURL) => {
+  const [header, data] = dataURL.split(',');
+  const mimeMatch = header.match(/:(.*?);/);
+  const mimeType = mimeMatch ? mimeMatch[1] : 'image/png';
+  const binary = atob(data);
+  const buffer = new Uint8Array(binary.length);
+
+  for (let i = 0; i < binary.length; i += 1) {
+    buffer[i] = binary.charCodeAt(i);
   }
+
+  return new Blob([buffer], { type: mimeType });
+};
+
+const downloadGridPhoto = () => {
+  if (!gridPhotoUrl.value) return;
+
+  const filename = `photobooth_grid_image_${gridCanvasElement.value?.width || targetPhotoSize}x${gridCanvasElement.value?.height || targetPhotoSize}.png`;
+  const blob = dataURLToBlob(gridPhotoUrl.value);
+
+  if (typeof navigator.msSaveOrOpenBlob === 'function') {
+    navigator.msSaveOrOpenBlob(blob, filename);
+    return;
+  }
+
+  const objectUrl = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = objectUrl;
+  link.download = filename;
+  link.target = '_blank';
+  link.rel = 'noopener noreferrer';
+  link.style.display = 'none';
+
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+
+  setTimeout(() => {
+    URL.revokeObjectURL(objectUrl);
+  }, 1000);
 };
 
 const resetPhotos = () => {
